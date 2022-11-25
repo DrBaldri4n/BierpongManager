@@ -18,48 +18,35 @@ def printGroups(allGroupNames, groupNumbers):
         cur.execute("SELECT * FROM " + allGroupNames[i])
         print(allGroupNames[i], cur.fetchall())
 
-def createGroupStage(allGroupNames, groupNumbers):
-    for indexGroup in range(groupNumbers):
-        cur.execute("SELECT team_name FROM " + allGroupNames[indexGroup])
-        groupX = cur.fetchall()
-        cur.execute("SELECT count() FROM " + allGroupNames[indexGroup])
-        groupSize = cur.fetchall()
-        groupSize = groupSize[0][0]
+def printGroupStage(groupNumbers, allGroupNames):
+    for i in range(groupNumbers):
+        cur.execute("SELECT * FROM " + allGroupNames[i] + "_group_stage")
+        print(allGroupNames[i], cur.fetchall())
 
-        cupsX = 0
-        cupsY = 0
-        print(allGroupNames[indexGroup])
-        for j in range(groupSize - 1):
-            for i in range(j + 1, groupSize):
-                print(groupX[j][0], " vs ", groupX[i][0])
-            #     cupsX = input("erziehlte Cups für " + groupX[j][0] + ": ")
-            #     cupsY = input("erziehlte Cups für " + groupX[i][0] + ": ")
-            #     incCups(allGroupNames[indexGroup], groupX[j][0], cupsX, groupX[i][0], cupsY)
-            #     incPoints(allGroupNames[indexGroup], groupX[j][0], cupsX, groupX[i][0], cupsY)
-            #     nextGroup = input("nächste Gruppe?(0 = nein | 1 = ja): ")
-            #     if int(nextGroup) == 1:
-            #         break
-            # if int(nextGroup) == 1:
-            #         break
-        
-        print()
+def inputGameResults():
+    group = input("Welche Gruppe?: ")
+    teamX = input("name des ersten Teams: ")
+    teamY = input("name des zweiten Teams: ")
+    cupsX = input("erziehlte Cups für " + teamX + ": ")
+    cupsY = input("erziehlte Cups für " + teamY + ": ")
+    incPoints(group, teamX, cupsX, teamX, cupsY)
         
 
-def main(allGroupNames, groupNumbers):
-    createGroupStage(allGroupNames, groupNumbers)
-    # while True:
-    #     printGroups(allGroupNames, groupNumbers)
-    #     changeCups = input("Cup anzahl ändern?(0 = nein | 1 = ja): ")
-    #     if changeCups == "1":
-    #         incCups()
-    #     changePoints = input("Punktezahl ändern?(0 = nein | 1 = ja): ")
-    #     if changePoints == "1":
-    #         incPoints()
-    #     gameEnd = input("programm beenden?(0 = nein | 1 = ja): ")
-    #     if gameEnd == "1":
-    #         break
+def main(allGroupNames, groupNumbers):    
+    printGroupStage(groupNumbers, allGroupNames)
+
+    while True:
+        printGroups(allGroupNames, groupNumbers)
+        inputResult = input("Eintragen eines Ergebnisses?(0 = nein | 1 = ja): ")
+        if inputResult == "1":
+            inputGameResults()
+        gameEnd = input("programm beenden?(0 = nein | 1 = ja): ")
+        if gameEnd == "1":
+            break
 
     printGroups(allGroupNames, groupNumbers)
+    printGroupStage(groupNumbers, allGroupNames)
+    
 
 if __name__ == "__main__":
     conn = sqlite3.connect('beerpong.db')

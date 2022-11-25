@@ -11,7 +11,28 @@ def createGroups():
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] +   " (team_name TEXT PRIMARY KEY,\
                                                                             points INTEGER,\
                                                                             cups INTEGER)")
+        cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] + "_group_stage (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER   )")
     return groupNumbers, allGroupNames
+
+def createGroupStage(allGroupNames, groupNumbers):
+    for indexGroup in range(groupNumbers):
+        cur.execute("SELECT team_name FROM " + allGroupNames[indexGroup])
+        groupX = cur.fetchall()
+        cur.execute("SELECT count() FROM " + allGroupNames[indexGroup])
+        groupSize = cur.fetchall()
+        groupSize = groupSize[0][0]
+
+        cupsX = 0
+        cupsY = 0
+        print(allGroupNames[indexGroup])
+        for j in range(groupSize - 1):
+            for i in range(j + 1, groupSize):
+                print(groupX[j][0], " vs ", groupX[i][0])
+                cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupX[j][0] + "', '" + groupX[i][0] + "', 0, 0)")
+
 
 def addNewTeam(allTeamNames):
     teamName = input("Teamname = ")
@@ -21,6 +42,11 @@ def addNewTeam(allTeamNames):
 def printGroups(groupNumbers, allGroupNames):
     for i in range(groupNumbers):
         cur.execute("SELECT * FROM " + allGroupNames[i])
+        print(allGroupNames[i], cur.fetchall())
+
+def printGroupStage(groupNumbers, allGroupNames):
+    for i in range(groupNumbers):
+        cur.execute("SELECT * FROM " + allGroupNames[i] + "_group_stage")
         print(allGroupNames[i], cur.fetchall())
 
 
@@ -81,6 +107,8 @@ def main():
     cur.executemany("INSERT INTO groupB VALUES (?,?,?)", allTeamsGroupB)
     cur.executemany("INSERT INTO groupC VALUES (?,?,?)", allTeamsGroupC)
     cur.executemany("INSERT INTO groupD VALUES (?,?,?)", allTeamsGroupD)
+
+    createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)
     printGroups(groupNumbers, allGroupNames)
     
