@@ -4,7 +4,7 @@ def incCups(group, teamX, cupsX, teamY, cupsY):
     cur.execute("UPDATE " + group + " SET cups = cups + (?) WHERE team_name = (?)", (cupsX, teamX))
     cur.execute("UPDATE " + group + " SET cups = cups + (?) WHERE team_name = (?)", (cupsY, teamY))
 
-def incPoints(group, teamX, cupsX, teamY, cupsY):
+def incPoints(group, teamX, cupsX, teamY, cupsY, cur):
     if cupsX > cupsY:
         cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (3, teamX))
     elif cupsX < cupsY:
@@ -23,14 +23,28 @@ def printGroupStage(groupNumbers, allGroupNames):
         cur.execute("SELECT * FROM " + allGroupNames[i] + "_group_stage")
         print(allGroupNames[i], cur.fetchall())
 
-def inputGameResults():
-    group = input("Welche Gruppe?: ")
-    teamX = input("name des ersten Teams: ")
-    teamY = input("name des zweiten Teams: ")
-    cupsX = input("erziehlte Cups für " + teamX + ": ")
-    cupsY = input("erziehlte Cups für " + teamY + ": ")
-    incPoints(group, teamX, cupsX, teamX, cupsY)
-        
+def inputGameResults(group, teamX, teamY, cupsX, cupsY):
+    cur, conn = openDB()
+    # group = input("Welche Gruppe?: ")
+    # teamX = input("name des ersten Teams: ")
+    # teamY = input("name des zweiten Teams: ")
+    # cupsX = input("erziehlte Cups für " + teamX + ": ")
+    # cupsY = input("erziehlte Cups für " + teamY + ": ")
+
+    cur.execute("UPDATE " + group + "_group_stage SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+    cur.execute("UPDATE " + group + "_group_stage SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+    incPoints(group, teamX, int(cupsX), teamY, int(cupsY), cur)
+    closeDB(conn)
+
+def catchGroupStage(groupNumber):
+    cur, conn = openDB()
+    allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"]
+    allGroupStages = []
+    for i in range(groupNumber):
+        cur.execute("SELECT * FROM " + allGroupNames[i] + "_group_stage")
+        allGroupStages.append(cur.fetchall())
+    closeDB(conn)
+    return allGroupStages 
 
 def main(allGroupNames, groupNumbers):    
     printGroupStage(groupNumbers, allGroupNames)
@@ -46,7 +60,15 @@ def main(allGroupNames, groupNumbers):
 
     printGroups(allGroupNames, groupNumbers)
     printGroupStage(groupNumbers, allGroupNames)
-    
+
+def closeDB(conn):
+    conn.commit()
+    conn.close()
+
+def openDB():
+    conn = sqlite3.connect('beerpong.db')
+    cur = conn.cursor()
+    return cur, conn
 
 if __name__ == "__main__":
     conn = sqlite3.connect('beerpong.db')
