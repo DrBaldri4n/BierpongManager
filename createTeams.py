@@ -80,28 +80,24 @@ def main():
                 ('Team2', 0, 0),
                 ('Team3', 0, 0),
                 ('Team4', 0, 0),
-                ('Team5', 0, 0),
                 ]
     allTeamsGroupB = [
                 ('Team6', 0, 0),
                 ('Team7', 0, 0),
                 ('Team8', 0, 0),
                 ('Team9', 0, 0),
-                ('Team10', 0, 0),
                 ]
     allTeamsGroupC = [
                 ('Team11', 0, 0),
                 ('Team12', 0, 0),
                 ('Team13', 0, 0),
                 ('Team14', 0, 0),
-                ('Team15', 0, 0),
                 ]
     allTeamsGroupD = [
                 ('Team16', 0, 0),
                 ('Team17', 0, 0),
                 ('Team18', 0, 0),
                 ('Team19', 0, 0),
-                ('Team20', 0, 0),
                 ]
     cur.executemany("INSERT INTO groupA VALUES (?,?,?)", allTeamsGroupA)
     cur.executemany("INSERT INTO groupB VALUES (?,?,?)", allTeamsGroupB)
