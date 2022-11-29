@@ -7,12 +7,21 @@ def createGroups():
     groupNumbers = input("wie viel Gruppen soll es geben?(zwischen 2 und 8 und nur gerade): ")
     #TODO error meldung einbauen, wenn gruppenzahl falsch eingegeben
     groupNumbers = int(groupNumbers)
-    for i in range(groupNumbers):
+    for i in range(groupNumbers):                                          # TODO team_nameX, team_nameY
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] +   " (team_name TEXT PRIMARY KEY,\
                                                                             cups INTEGER,\
                                                                             points INTEGER,\
                                                                             rank INTEGER)")
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] + "_group_stage (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER   )")
+        # TODO Create Table only when needed
+        cur.execute("CREATE TABLE IF NOT EXISTS quater_finals           (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER   )")
+        cur.execute("CREATE TABLE IF NOT EXISTS finals                   (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
                                                                          result_for_team2 INTEGER   )")
