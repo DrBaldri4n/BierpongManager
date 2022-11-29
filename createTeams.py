@@ -9,8 +9,9 @@ def createGroups():
     groupNumbers = int(groupNumbers)
     for i in range(groupNumbers):
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] +   " (team_name TEXT PRIMARY KEY,\
+                                                                            cups INTEGER,\
                                                                             points INTEGER,\
-                                                                            cups INTEGER)")
+                                                                            rank INTEGER)")
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] + "_group_stage (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
@@ -76,33 +77,33 @@ def main():
 
     #only for tests!!!!
     allTeamsGroupA = [
-                ('Team1', 0, 0),
-                ('Team2', 0, 0),
-                ('Team3', 0, 0),
-                ('Team4', 0, 0),
+                ('Team1', 0, 0, 1),
+                ('Team2', 0, 0, 1),
+                ('Team3', 0, 0, 1),
+                ('Team4', 0, 0, 1),
                 ]
     allTeamsGroupB = [
-                ('Team6', 0, 0),
-                ('Team7', 0, 0),
-                ('Team8', 0, 0),
-                ('Team9', 0, 0),
+                ('Team6', 0, 0, 1),
+                ('Team7', 0, 0, 1),
+                ('Team8', 0, 0, 1),
+                ('Team9', 0, 0, 1),
                 ]
     allTeamsGroupC = [
-                ('Team11', 0, 0),
-                ('Team12', 0, 0),
-                ('Team13', 0, 0),
-                ('Team14', 0, 0),
+                ('Team11', 0, 0, 1),
+                ('Team12', 0, 0, 1),
+                ('Team13', 0, 0, 1),
+                ('Team14', 0, 0, 1),
                 ]
     allTeamsGroupD = [
-                ('Team16', 0, 0),
-                ('Team17', 0, 0),
-                ('Team18', 0, 0),
-                ('Team19', 0, 0),
+                ('Team16', 0, 0, 1),
+                ('Team17', 0, 0, 1),
+                ('Team18', 0, 0, 1),
+                ('Team19', 0, 0, 1),
                 ]
-    cur.executemany("INSERT INTO groupA VALUES (?,?,?)", allTeamsGroupA)
-    cur.executemany("INSERT INTO groupB VALUES (?,?,?)", allTeamsGroupB)
-    cur.executemany("INSERT INTO groupC VALUES (?,?,?)", allTeamsGroupC)
-    cur.executemany("INSERT INTO groupD VALUES (?,?,?)", allTeamsGroupD)
+    cur.executemany("INSERT INTO groupA VALUES (?,?,?,?)", allTeamsGroupA)
+    cur.executemany("INSERT INTO groupB VALUES (?,?,?,?)", allTeamsGroupB)
+    cur.executemany("INSERT INTO groupC VALUES (?,?,?,?)", allTeamsGroupC)
+    cur.executemany("INSERT INTO groupD VALUES (?,?,?,?)", allTeamsGroupD)
 
     createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)
