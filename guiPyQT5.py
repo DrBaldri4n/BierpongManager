@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 from math import factorial
 
 #import own functions
-from updateGame import inputGameResults, catchGroupStage, catchTeamInfo, addQuaterFinals, catchQF, updateQF
+from updateGame import inputGameResults, catchGroupStage, catchTeamInfo, addQuaterFinals, catchQF, updateQF, insertWinnerQF, catchWinnerQF, addSF
 
 class Header:
     def __init__(self) -> None:
@@ -15,7 +15,7 @@ class Header:
         self.rank2 = QListWidgetItem("2. in Gruppe")
         self.teamX = QListWidgetItem("Team 1")
         self.teamY = QListWidgetItem("Team 2")
-        self.TeamName = QListWidgetItem("Team Name")
+        self.teamName = QListWidgetItem("Team Name")
         self.cupsX = QListWidgetItem("Cups")
         self.cupsY = QListWidgetItem("Cups")
         self.rank = QListWidgetItem("Platz")
@@ -65,7 +65,7 @@ class Window(QMainWindow):
         # set headers
         groupHeader = Header()
         rank.addItem(groupHeader.rank)
-        teamName.addItem(groupHeader.TeamName)
+        teamName.addItem(groupHeader.teamName)
         cups.addItem(groupHeader.cupsX)
         points.addItem(groupHeader.points)
 
@@ -174,7 +174,7 @@ class Window(QMainWindow):
         self.allCupColsFinals.append(col3Final)
         self.allCupColsFinals.append(col4Final)
 
-    def fillQuaterFinalsTable(self):
+    def fillQFtable(self):
         _, groupWinnerFirst, groupWinnerSecond = catchTeamInfo(self.groupNumber)
         
         rank1VSrank2 = 1
@@ -194,6 +194,22 @@ class Window(QMainWindow):
                 elif rank1VSrank2 == 0:
                     groupWinnerSecond.pop(0)
                     rank1VSrank2 = 1
+
+    def fillSFtable(self):
+        winnerQF = catchWinnerQF()
+        
+        for groupCounter in range(0, len(self.allCupColsSF), 4):
+            # for _ in range(0):
+            self.allCupColsSF[groupCounter].addItem(winnerQF[0][0])
+            self.allCupColsSF[groupCounter+1].addItem(winnerQF[len(winnerQF)-1][0])
+            self.allCupColsSF[groupCounter+2].addItem("0")
+            self.allCupColsSF[groupCounter+3].addItem("0")
+
+            addSF(winnerQF[0][0], winnerQF[1][0], 0 , 0)
+            
+            winnerQF.pop(0)
+            winnerQF.pop(len(winnerQF)-1)
+
 
     #TODO dont use a table for short textes
     def resultUserInput(self):
@@ -221,20 +237,20 @@ class Window(QMainWindow):
 
         # userInput
         self.group = QLineEdit(self)
-        self.team1Name = QLineEdit(self)
-        self.team2Name = QLineEdit(self)
-        self.team1Result = QLineEdit(self)
-        self.team2Result = QLineEdit(self)
+        self.teamXname = QLineEdit(self)
+        self.teamYname = QLineEdit(self)
+        self.teamXresult = QLineEdit(self)
+        self.teamYresult = QLineEdit(self)
         self.resultGroup = QPushButton('hinzufügen', self)
         self.resultQF = QPushButton('hinzufügen VF', self)
         self.resultFinal = QPushButton('hinzufügen Final', self)
 
         self.group.setGeometry(0, 622, 170, 22)
-        self.team1Name.setGeometry(50, 622, 150, 22)
-        self.team2Name.setGeometry(200, 622, 150, 22)
-        self.team1Result.setGeometry(350, 622, 50, 22)
-        self.team2Result.setGeometry(400, 622, 50, 22)
-        self.resultGroup.setGeometry(450, 622, 100, 22)
+        self.teamXname.setGeometry(50, 622, 150, 22)
+        self.teamYname.setGeometry(200, 622, 150, 22)
+        self.teamXresult.setGeometry(350, 622, 50, 22)
+        self.teamYresult.setGeometry(400, 622, 50, 22)
+        self.resultGroup.setGeometry(450, 622, 150, 22)
         self.resultQF.setGeometry(450, 644, 150, 22)
         self.resultFinal.setGeometry(450, 666, 150, 22)
     
@@ -243,14 +259,13 @@ class Window(QMainWindow):
         self.resultQF.clicked.connect(self.inputResultQFbutton)
         self.resultFinal.clicked.connect(self.inputResultQFbutton) # This button is not rdy for the final Table
 
-        self.resultGroup = QPushButton('start KO-Phase', self)
+        self.resultGroup = QPushButton('start Viertel Finale', self)
         self.resultGroup.setGeometry(600, 622, 150, 22)
         self.resultGroup.clicked.connect(self.startQFButton)
-        self.show()
 
-        self.resultQF = QPushButton('start Finale', self)
+        self.resultQF = QPushButton('start Halb Finale', self)
         self.resultQF.setGeometry(600, 644, 150, 22)
-        self.resultQF.clicked.connect(self.startFinalsButton)
+        self.resultQF.clicked.connect(self.startSemiFinalsButton)
         self.show()
 
     # method for components
@@ -287,10 +302,10 @@ class Window(QMainWindow):
     def inputResultGroupButton(self):
         numberOfGames = factorial(self.teamsPerGroup - 1)
         groupValue = self.group.text()
-        team1NameValue = self.team1Name.text()
-        team2NameValue = self.team2Name.text()
-        team1ResultValue = self.team1Result.text()
-        team2ResultValue = self.team2Result.text()
+        team1NameValue = self.teamXname.text()
+        team2NameValue = self.teamYname.text()
+        team1ResultValue = self.teamXresult.text()
+        team2ResultValue = self.teamYresult.text()
 
         # only for tests!!!
         allGroupNames = ["groupA", "groupB", "groupC", "groupD"]
@@ -303,34 +318,43 @@ class Window(QMainWindow):
         self.updateTables()
         
         self.group.setText("")
-        self.team1Name.setText("")
-        self.team2Name.setText("")
-        self.team1Result.setText("")
-        self.team2Result.setText("")
+        self.teamXname.setText("")
+        self.teamYname.setText("")
+        self.teamXresult.setText("")
+        self.teamYresult.setText("")
 
     def startQFButton(self):
-        self.fillQuaterFinalsTable()
+        self.fillQFtable()
         # in the case of a program crash
         self.updateQFtable()
 
-    def startFinalsButton(self):
-        self.fillFinalsTable()
+    def startSemiFinalsButton(self):
+        self.fillSFtable()
         # in the case of a program crash
-        self.updateFinalsTable()
+        # self.updateFinalsTable()
 
     def inputResultQFbutton(self):
-        team1NameValue = self.team1Name.text()
-        team2NameValue = self.team2Name.text()
-        team1ResultValue = self.team1Result.text()
-        team2ResultValue = self.team2Result.text()
+        teamXnameValue = self.teamXname.text()
+        teamYnameValue = self.teamYname.text()
+        team1ResultValue = self.teamXresult.text()
+        team2ResultValue = self.teamYresult.text()
 
-        updateQF(team1NameValue, team2NameValue, team1ResultValue, team2ResultValue)
+
+        # only for tests!!!!
+        teamX = ["Team4", "Team9", "Team14", "Team19"]
+        teamY = ["Team8", "Team3", "Team18", "Team13"]
+        for i in range(4):
+            updateQF(teamX[i], teamY[i], "2", "8")
+            insertWinnerQF(teamX[i], teamY[i], "2", "8")
+
+        # insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
+        # updateQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
         self.updateQFtable()    
 
-        self.team1Name.setText("")
-        self.team2Name.setText("")
-        self.team1Result.setText("")
-        self.team2Result.setText("")
+        self.teamXname.setText("")
+        self.teamYname.setText("")
+        self.teamXresult.setText("")
+        self.teamYresult.setText("")
 
     def updateQFtable(self):
         for _ in range(2):

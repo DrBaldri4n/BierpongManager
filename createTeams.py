@@ -20,7 +20,15 @@ def createGroups():
         cur.execute("CREATE TABLE IF NOT EXISTS quater_finals           (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
-                                                                         result_for_team2 INTEGER   )")
+                                                                         result_for_team2 INTEGER,\
+                                                                         winner TEXT)")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS semi_finals             (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER,\
+                                                                         winner TEXT)")
+
         cur.execute("CREATE TABLE IF NOT EXISTS finals                   (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
@@ -127,5 +135,3 @@ if __name__ == "__main__":
     
     conn.commit()
     conn.close()
-
-

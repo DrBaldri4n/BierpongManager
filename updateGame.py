@@ -21,12 +21,16 @@ def calcRank(group, cur):
     for i in range(len(teamInfo)):
         cur.execute("UPDATE " + group + " SET rank = (?) WHERE team_name = (?)", (i + 1, teamInfo[i][0]))
 
-def calcWinnerQF(tableQF, cur):
-    cur.execute("SELECT * FROM quater_finals ORDER BY cups DESC")
-    qFInfo = cur.fetchall()
-    return qFInfo
-
-
+def insertWinnerQF(teamXname, teamYname, teamXresult, teamYresult):
+    cur, conn = openDB()
+    winnerTeam = teamXname
+    if int(teamXresult) < int(teamYresult):
+        winnerTeam = teamYname
+    cur.execute("UPDATE quater_finals \
+                        SET winner = (?)\
+                        WHERE team_name1 = (?) AND team_name2 = (?)", (winnerTeam, teamXname, teamYname))
+    closeDB(conn)
+    
 def calcGroupWinner(teamInfo, cur):
     groupWinnerFirst = []
     groupWinnerSecond = []
@@ -46,9 +50,19 @@ def addQuaterFinals(teamX, teamY, cupsX, cupsY):
     teamNumber = cur.fetchall()
     # TODO Error Handling
     if int(teamNumber[0][0]) < 4:
-        cur.execute("INSERT INTO quater_finals VALUES (?,?,?,?)", (teamX, teamY, cupsX, cupsY))
+        cur.execute("INSERT INTO quater_finals (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
     closeDB(conn)
 
+def addSF(teamX, teamY, cupsX, cupsY):
+    cur, conn = openDB()
+    cur.execute("SELECT COUNT(*) FROM semi_finals")
+    teamNumber = cur.fetchall()
+    # TODO Error Handling
+    if int(teamNumber[0][0]) < 2:
+        cur.execute("INSERT INTO semi_finals (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
+    closeDB(conn)
+
+# TODO not needed
 def updateQF(teamX, teamY, cupsX, cupsY):
     cur, conn = openDB()
     cur.execute("UPDATE quater_finals SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
@@ -62,20 +76,6 @@ def catchQF():
     closeDB(conn)
     return quaterFinalsTable
 
-# TODO very close to addQuaterFinals
-def addFinals(teamX, teamY, cupsX, cupsY):
-    cur, conn = openDB()
-    cur.execute("SELECT COUNT(*) FROM finals")
-    teamNumber = cur.fetchall()
-    # TODO Error Handling
-    if int(teamNumber[0][0]) < 4:
-        cur.execute("SELECT * FROM quater_finals")
-        tableQF = cur.fetchall()
-        qFinfo = calcWinnerQF(tableQF, cur)
-        for i in range(len(qFinfo)):
-            cur.execute("INSERT INTO finals VALUES (?,?,?,?)", (teamX, teamY, cupsX, cupsY))
-    closeDB(conn)
-
 # TODO very close to updateQuaterFinals
 def updateFinals(teamX, teamY, cupsX, cupsY):
     cur, conn = openDB()
@@ -84,12 +84,13 @@ def updateFinals(teamX, teamY, cupsX, cupsY):
     closeDB(conn)
 
 # TODO very close to catchQuaterFinals
-def catchFinals():
+def catchWinnerQF():
     cur, conn = openDB()
-    cur.execute("SELECT * FROM finals")
-    finalsTable = cur.fetchall()
+    cur.execute("SELECT winner FROM quater_finals")
+    winnerQF = cur.fetchall()
+    print(winnerQF)
     closeDB(conn)
-    return finalsTable
+    return winnerQF
 
 def catchTeamInfo(groupNumber):
     cur, conn = openDB()
