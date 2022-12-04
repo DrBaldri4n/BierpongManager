@@ -1,12 +1,11 @@
-#import python lib
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from math import factorial
 
-#import own functions
-from updateGame import inputGameResults, catchGroupStage, catchTeamInfo, addQuaterFinals, catchQF, updateQF, insertWinnerQF, catchWinnerQF, addSF
+from updateGame import inputGameResults, catchGroupStage, addQF, catchQF, updateKOtabelDB,\
+                       insertWinnerQF, catchWinner, addSF, addFinals
 
 class Header:
     def __init__(self) -> None:
@@ -27,21 +26,25 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Bierpong Tunier")
-        self.setGeometry(0, 0, 2000, 800)
+        self.setGeometry(0, 0, 1920, 1080)
+        self.lable = QLabel(self)
+        self.lable.setStyleSheet("background-image : url(beerpong.png)")
+        self.lable.resize(1920, 1080)
 
         # user can change this Variables
         self.groupNumber = 4
         self.teamsPerGroup = 4
 
         #TODO make this beautifull
-        self.allCupColsTeamInfo = []
-        self.allCupColsGroupStage = []
-        self.allCupColsSF = []
-        self.allCupColsQF = []
-        self.allCupColsFinals = []
-        
+        self._allCupColsTeamInfo = []
+        self._allCupColsGroupStage = []
+        self._allCupColsSF = []
+        self._allCupColsQF = []
+        self._allCupColsFinals = []
+        # needed to make the buttons disappear
+        self._gamePhase = "group_phase"
+    
         self.UiComponents()
-
         self.show()
 
     def _groupOverview(self, tableGeometry, teamInfo):
@@ -49,9 +52,8 @@ class Window(QMainWindow):
         teamName = QListWidget(self)
         cups = QListWidget(self)
         points = QListWidget(self)
-    
         # creating table
-        distancToBorder = 25
+        distancToBorder = 100
         tableHigh = self.teamsPerGroup * 22
         rank.setGeometry(tableGeometry, distancToBorder, 50, tableHigh)
         tableGeometry += 50
@@ -61,14 +63,12 @@ class Window(QMainWindow):
         tableGeometry += 50
         points.setGeometry(tableGeometry, distancToBorder, 60, tableHigh)
         tableGeometry += 205
-
         # set headers
         groupHeader = Header()
         rank.addItem(groupHeader.rank)
         teamName.addItem(groupHeader.teamName)
         cups.addItem(groupHeader.cupsX)
         points.addItem(groupHeader.points)
-
         # fill columns
         for i in range(self.teamsPerGroup):
             rank.addItem(str(teamInfo[0][i][3]))
@@ -78,9 +78,9 @@ class Window(QMainWindow):
         teamInfo.pop(0)
 
         # needed to update Rank, Cups and Points
-        self.allCupColsTeamInfo.append(rank)
-        self.allCupColsTeamInfo.append(cups)
-        self.allCupColsTeamInfo.append(points)
+        self._allCupColsTeamInfo.append(rank)
+        self._allCupColsTeamInfo.append(cups)
+        self._allCupColsTeamInfo.append(points)
         return tableGeometry
 
     def _createGroupTable(self, tableGeometry, infoGroupStages, numberOfGames):
@@ -88,10 +88,9 @@ class Window(QMainWindow):
         col2TeamNameY = QListWidget(self)
         col3GroupStageCups = QListWidget(self)
         col4GroupStageCups = QListWidget(self)
-        
         # creating table
-        distanceToGroupOverview = 50 + ((self.teamsPerGroup) * 21)
-        tableHigh = (numberOfGames * 21)
+        distanceToGroupOverview = 150 + ((self.teamsPerGroup) * 22)
+        tableHigh = (numberOfGames * 22)
         col1TeamNameX.setGeometry(tableGeometry, distanceToGroupOverview, 235, tableHigh)
         tableGeometry += 150
         col2TeamNameY.setGeometry(tableGeometry, distanceToGroupOverview, 150, tableHigh)
@@ -100,14 +99,12 @@ class Window(QMainWindow):
         tableGeometry += 50
         col4GroupStageCups.setGeometry(tableGeometry, distanceToGroupOverview, 50, tableHigh)
         tableGeometry += 100
-
         # set headers
         groupStageHeader = Header()
         col1TeamNameX.addItem(groupStageHeader.teamX)
         col2TeamNameY.addItem(groupStageHeader.teamY)
         col3GroupStageCups.addItem(groupStageHeader.cupsX)
         col4GroupStageCups.addItem(groupStageHeader.cupsY)
-
         # fill columns 
         for i in range(numberOfGames):
             col1TeamNameX.addItem(infoGroupStages[0][i][0])
@@ -115,18 +112,16 @@ class Window(QMainWindow):
             col3GroupStageCups.addItem(str(infoGroupStages[0][i][2]))
             col4GroupStageCups.addItem(str(infoGroupStages[0][i][3]))            
         infoGroupStages.pop(0)
-
         # needed to update cups in the table
-        self.allCupColsGroupStage.append(col3GroupStageCups)
-        self.allCupColsGroupStage.append(col4GroupStageCups)
+        self._allCupColsGroupStage.append(col3GroupStageCups)
+        self._allCupColsGroupStage.append(col4GroupStageCups)
         return tableGeometry
 
-    def _createTableKO(self, tableGeometry, distanceToTable, tableHeigh, numberOfGames, tableID):
+    def _createTableKO(self, tableGeometry, distanceToTable, tableHeigh, tableID):
         col1 = QListWidget(self)
         col2 = QListWidget(self)
         col3 = QListWidget(self)
         col4 = QListWidget(self)
-
         # creating table
         col1.setGeometry(tableGeometry, distanceToTable, 150, tableHeigh)
         tableGeometry += 150
@@ -135,14 +130,12 @@ class Window(QMainWindow):
         col3.setGeometry(tableGeometry, distanceToTable, 50, tableHeigh)
         tableGeometry += 50
         col4.setGeometry(tableGeometry, distanceToTable, 50, tableHeigh)
-        
         # set header
         finalHeader = Header()
         col1.addItem(finalHeader.rank1)
         col2.addItem(finalHeader.rank2)
         col3.addItem(finalHeader.cupsX)
         col4.addItem(finalHeader.cupsY)
-        
         # needed to update later cups in the table
         if tableID == "qf":
             self._addAllCupColsQF(col1, col2, col3, col4)
@@ -157,35 +150,35 @@ class Window(QMainWindow):
         return tableGeometry
 
     def _addAllCupColsSF(self, col1, col2, col3QFcups, col4QFcups):
-        self.allCupColsSF.append(col1)
-        self.allCupColsSF.append(col2)
-        self.allCupColsSF.append(col3QFcups)
-        self.allCupColsSF.append(col4QFcups)
+        self._allCupColsSF.append(col1)
+        self._allCupColsSF.append(col2)
+        self._allCupColsSF.append(col3QFcups)
+        self._allCupColsSF.append(col4QFcups)
 
     def _addAllCupColsQF(self, col1, col2, col3QFcups, col4QFcups):
-        self.allCupColsQF.append(col1)
-        self.allCupColsQF.append(col2)
-        self.allCupColsQF.append(col3QFcups)
-        self.allCupColsQF.append(col4QFcups)
+        self._allCupColsQF.append(col1)
+        self._allCupColsQF.append(col2)
+        self._allCupColsQF.append(col3QFcups)
+        self._allCupColsQF.append(col4QFcups)
 
     def _addAllCupColsFinals(self, col1, col2, col3Final, col4Final):
-        self.allCupColsFinals.append(col1)
-        self.allCupColsFinals.append(col2)
-        self.allCupColsFinals.append(col3Final)
-        self.allCupColsFinals.append(col4Final)
+        self._allCupColsFinals.append(col1)
+        self._allCupColsFinals.append(col2)
+        self._allCupColsFinals.append(col3Final)
+        self._allCupColsFinals.append(col4Final)
 
     def fillQFtable(self):
-        _, groupWinnerFirst, groupWinnerSecond = catchTeamInfo(self.groupNumber)
+        _, groupWinnerFirst, groupWinnerSecond = catchGroupStage(self.groupNumber, "teamInfo")
         
         rank1VSrank2 = 1
-        for groupCounter in range(0, len(self.allCupColsQF), 4):
+        for groupCounter in range(0, len(self._allCupColsQF), 4):
             for _ in range(2):
-                self.allCupColsQF[groupCounter].addItem(groupWinnerFirst[0][0])
-                self.allCupColsQF[groupCounter+1].addItem(groupWinnerSecond[rank1VSrank2][0])
-                self.allCupColsQF[groupCounter+2].addItem("0")
-                self.allCupColsQF[groupCounter+3].addItem("0")
+                self._allCupColsQF[groupCounter].addItem(groupWinnerFirst[0][0])
+                self._allCupColsQF[groupCounter+1].addItem(groupWinnerSecond[rank1VSrank2][0])
+                self._allCupColsQF[groupCounter+2].addItem("0")
+                self._allCupColsQF[groupCounter+3].addItem("0")
 
-                addQuaterFinals(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0 , 0)
+                addQF(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0 , 0)
                 
                 groupWinnerFirst.pop(0)
                 if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
@@ -196,220 +189,279 @@ class Window(QMainWindow):
                     rank1VSrank2 = 1
 
     def fillSFtable(self):
-        winnerQF = catchWinnerQF()
+        winnerQF = catchWinner("quater_finals")
         
-        for groupCounter in range(0, len(self.allCupColsSF), 4):
-            # for _ in range(0):
-            self.allCupColsSF[groupCounter].addItem(winnerQF[0][0])
-            self.allCupColsSF[groupCounter+1].addItem(winnerQF[len(winnerQF)-1][0])
-            self.allCupColsSF[groupCounter+2].addItem("0")
-            self.allCupColsSF[groupCounter+3].addItem("0")
+        for groupCounter in range(0, len(self._allCupColsSF), 4):
+            self._allCupColsSF[groupCounter].addItem(winnerQF[0][0])
+            self._allCupColsSF[groupCounter+1].addItem(winnerQF[len(winnerQF)-1][0])
+            self._allCupColsSF[groupCounter+2].addItem("0")
+            self._allCupColsSF[groupCounter+3].addItem("0")
 
-            addSF(winnerQF[0][0], winnerQF[1][0], 0 , 0)
+            addSF(winnerQF[0][0], winnerQF[len(winnerQF)-1][0], 0 , 0, "semi_finals")
             
             winnerQF.pop(0)
             winnerQF.pop(len(winnerQF)-1)
 
+    def fillFinaltable(self):
+        winnerSF = catchWinner("semi_finals")
+        loserSF = catchWinner("quater_finals")
+        # filter the loser teams
+        for j in range(len(winnerSF)):
+            for i in range(len(loserSF)):
+                if loserSF[i] == winnerSF[j]:
+                    loserSF.pop(i)
+                    break
+        for i in range(len(loserSF)):
+            winnerSF.append(loserSF[i]) 
+        # add the Teams in the Table
+        for i in range(0, len(self._allCupColsFinals), 4):
+            self._allCupColsFinals[i].addItem(winnerSF[len(winnerSF)-2][0]) # losing teams are at the end of the winnerSF[list]
+            self._allCupColsFinals[i+1].addItem(winnerSF[len(winnerSF)-1][0])
+            self._allCupColsFinals[i+2].addItem("0")
+            self._allCupColsFinals[i+3].addItem("0")
 
-    #TODO dont use a table for short textes
-    def resultUserInput(self):
-        # info Text for the User
-        col0 = QListWidget(self)
-        col1 = QListWidget(self)
-        col2 = QListWidget(self)
-        col3 = QListWidget(self)
-        col4 = QListWidget(self)
-        col0.setGeometry(0, 600, 150, 22)
-        col1.setGeometry(50, 600, 150, 22)
-        col2.setGeometry(200, 600, 150, 22)
-        col3.setGeometry(350, 600, 50, 22)
-        col4.setGeometry(400, 600, 50, 22)
-        group = QListWidgetItem("group")
-        team1 = QListWidgetItem("Team 1")
-        team2 = QListWidgetItem("Team 2")
-        cupsTeam1 = QListWidgetItem("Cups")
-        cupsTeam2 = QListWidgetItem("Cups")
-        col0.addItem(group)
-        col1.addItem(team1)
-        col2.addItem(team2)
-        col3.addItem(cupsTeam1)
-        col4.addItem(cupsTeam2)
+            addSF(winnerSF[len(winnerSF)-2][0], winnerSF[len(winnerSF)-1][0], 0 , 0, "semi_finals")
+            addFinals(winnerSF[len(winnerSF)-2][0], winnerSF[len(winnerSF)-1][0], 0 , 0, "finals")
+            
+            winnerSF.pop(len(winnerSF)-1)
+            winnerSF.pop(len(winnerSF)-1)
 
-        # userInput
-        self.group = QLineEdit(self)
-        self.teamXname = QLineEdit(self)
-        self.teamYname = QLineEdit(self)
-        self.teamXresult = QLineEdit(self)
-        self.teamYresult = QLineEdit(self)
-        self.resultGroup = QPushButton('hinzufügen', self)
-        self.resultQF = QPushButton('hinzufügen VF', self)
-        self.resultFinal = QPushButton('hinzufügen Final', self)
-
-        self.group.setGeometry(0, 622, 170, 22)
-        self.teamXname.setGeometry(50, 622, 150, 22)
-        self.teamYname.setGeometry(200, 622, 150, 22)
-        self.teamXresult.setGeometry(350, 622, 50, 22)
-        self.teamYresult.setGeometry(400, 622, 50, 22)
-        self.resultGroup.setGeometry(450, 622, 150, 22)
-        self.resultQF.setGeometry(450, 644, 150, 22)
-        self.resultFinal.setGeometry(450, 666, 150, 22)
-    
-        # buttons
-        self.resultGroup.clicked.connect(self.inputResultGroupButton)
-        self.resultQF.clicked.connect(self.inputResultQFbutton)
-        self.resultFinal.clicked.connect(self.inputResultQFbutton) # This button is not rdy for the final Table
-
-        self.resultGroup = QPushButton('start Viertel Finale', self)
-        self.resultGroup.setGeometry(600, 622, 150, 22)
-        self.resultGroup.clicked.connect(self.startQFButton)
-
-        self.resultQF = QPushButton('start Halb Finale', self)
-        self.resultQF.setGeometry(600, 644, 150, 22)
-        self.resultQF.clicked.connect(self.startSemiFinalsButton)
-        self.show()
-
-    # method for components
-
-    def updateTables(self):
+    def updateTeamInfoTables(self):
         numberOfGames = factorial(self.teamsPerGroup - 1)
-
-        # delete columns Team Info
-        for groupCounter in range(len(self.allCupColsTeamInfo)):
+        # clear cup columns Team Info
+        for groupCounter in range(len(self._allCupColsTeamInfo)):
             for gameCounter in range(self.teamsPerGroup):
-                QListWidget.takeItem(self.allCupColsTeamInfo[groupCounter], 1)
-        # delete columns Group Stage
-        for groupCounter in range(len(self.allCupColsGroupStage)):
-            for gameCounter in range(numberOfGames):
-                QListWidget.takeItem(self.allCupColsGroupStage[groupCounter], 1)
-
-        # fill columns Team Info
-        teamInfo, _, _ = catchTeamInfo(self.groupNumber)
-        # print(teamInfo)
-        for groupCounter in range(0, len(self.allCupColsTeamInfo), 3):
+                QListWidget.takeItem(self._allCupColsTeamInfo[groupCounter], 1)
+        # fill Cup columns Team Info
+        teamInfo, _, _ = catchGroupStage(self.groupNumber, "teamInfo")
+        for groupCounter in range(0, len(self._allCupColsTeamInfo), 3):
             for gameCounter in range(self.teamsPerGroup):
-                self.allCupColsTeamInfo[groupCounter].addItem(str(teamInfo[0][gameCounter][3]))
-                self.allCupColsTeamInfo[groupCounter+1].addItem(str(teamInfo[0][gameCounter][1]))
-                self.allCupColsTeamInfo[groupCounter+2].addItem(str(teamInfo[0][gameCounter][2]))
+                self._allCupColsTeamInfo[groupCounter].addItem(str(teamInfo[0][gameCounter][3]))
+                self._allCupColsTeamInfo[groupCounter+1].addItem(str(teamInfo[0][gameCounter][1]))
+                self._allCupColsTeamInfo[groupCounter+2].addItem(str(teamInfo[0][gameCounter][2]))
             teamInfo.pop(0)
-        # fill columns Group Stage
-        allGroupStages = catchGroupStage(self.groupNumber)
-        for groupCounter in range(0, len(self.allCupColsGroupStage), 2):
+
+        # clear cup columns Group Stage
+        for groupCounter in range(len(self._allCupColsGroupStage)):
             for gameCounter in range(numberOfGames):
-                self.allCupColsGroupStage[groupCounter].addItem(str(allGroupStages[0][gameCounter][2]))
-                self.allCupColsGroupStage[groupCounter+1].addItem(str(allGroupStages[0][gameCounter][3]))
+                QListWidget.takeItem(self._allCupColsGroupStage[groupCounter], 1)
+        # fill cup columns Group Stage
+        allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
+        for groupCounter in range(0, len(self._allCupColsGroupStage), 2):
+            for gameCounter in range(numberOfGames):
+                self._allCupColsGroupStage[groupCounter].addItem(str(allGroupStages[0][gameCounter][2]))
+                self._allCupColsGroupStage[groupCounter+1].addItem(str(allGroupStages[0][gameCounter][3]))
             allGroupStages.pop(0)
 
-    def inputResultGroupButton(self):
-        numberOfGames = factorial(self.teamsPerGroup - 1)
-        groupValue = self.group.text()
-        team1NameValue = self.teamXname.text()
-        team2NameValue = self.teamYname.text()
-        team1ResultValue = self.teamXresult.text()
-        team2ResultValue = self.teamYresult.text()
+    def _userInput(self):
+        # Headers
+        self.groupLable = QLabel("Gruppe", self)
+        self.groupLable.setFont(QFont("Arial", 10, QFont.Bold))
+        self.groupLable.setGeometry(60, 828, 70, 22)
+        teamXnameLable = QLabel("Team1", self)
+        teamXnameLable.setFont(QFont("Arial", 12, QFont.Bold))
+        teamXnameLable.setGeometry(175, 828, 150, 22)
+        teamYnameLable = QLabel("Team2", self)
+        teamYnameLable.setFont(QFont("Arial", 12, QFont.Bold))
+        teamYnameLable.setGeometry(325, 828, 150, 22)
+        teamXresultLable = QLabel("Cups", self)
+        teamXresultLable.setFont(QFont("Arial", 12, QFont.Bold))
+        teamXresultLable.setGeometry(435, 828, 50, 22)
+        teamYresultLable = QLabel("Cups", self)
+        teamYresultLable.setFont(QFont("Arial", 12, QFont.Bold))
+        teamYresultLable.setGeometry(485, 828, 50, 22)
 
-        # only for tests!!!
-        allGroupNames = ["groupA", "groupB", "groupC", "groupD"]
-        allGroupStages = catchGroupStage(self.groupNumber)
-        for idx, group in enumerate(allGroupNames):
-            for i in range(numberOfGames):
-                inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "8", "10")
+        self.groupLable.setFont(QFont("Arial", 14, QFont.Bold))
+        # userInput
+        self.group = QComboBox(self)
+        self.group.setGeometry(50, 850, 80, 22)
+        groupChoice = ["groupA", "groupB", "groupC", "groupD"]
+        self.group.addItems(groupChoice)
+        self.teamXname = QLineEdit(self)
+        self.teamXname.setGeometry(130, 850, 150, 22)
+        self.teamYname = QLineEdit(self)
+        self.teamYname.setGeometry(280, 850, 150, 22)
+        self.teamXresult = QLineEdit(self)
+        self.teamXresult.setGeometry(430, 850, 50, 22)
+        self.teamYresult = QLineEdit(self)
+        self.teamYresult.setGeometry(480, 850, 50, 22)
+        # buttons
+        self.resultGroup = QPushButton('hinzufügen', self)
+        self.resultGroup.setGeometry(530, 850, 150, 22)
+        self.resultGroup.clicked.connect(self._inputResultbutton)
+        self.resultSF = QPushButton('start Finale', self)
+        self.resultSF.setGeometry(530, 872, 150, 22)
+        self.resultSF.clicked.connect(self._startFinalbutton)
+        self.resultQF = QPushButton('start Halb Finale', self)
+        self.resultQF.setGeometry(530, 872, 150, 22)
+        self.resultQF.clicked.connect(self._startSFbutton)
+        self.resultGroup = QPushButton('start Viertel Finale', self)
+        self.resultGroup.setGeometry(530, 872, 150, 22)
+        self.resultGroup.clicked.connect(self._startQFbutton)
+    
+        self.show()
 
-        # inputGameResults(groupValue, team1NameValue, team2NameValue, team1ResultValue, team2ResultValue)
-        self.updateTables()
-        
-        self.group.setText("")
-        self.teamXname.setText("")
-        self.teamYname.setText("")
-        self.teamXresult.setText("")
-        self.teamYresult.setText("")
-
-    def startQFButton(self):
-        self.fillQFtable()
-        # in the case of a program crash
-        self.updateQFtable()
-
-    def startSemiFinalsButton(self):
-        self.fillSFtable()
-        # in the case of a program crash
-        # self.updateFinalsTable()
-
-    def inputResultQFbutton(self):
+    def _inputResultbutton(self):
+        groupValue = self.group.currentText()
         teamXnameValue = self.teamXname.text()
         teamYnameValue = self.teamYname.text()
         team1ResultValue = self.teamXresult.text()
         team2ResultValue = self.teamYresult.text()
 
+        if self._gamePhase == "group_phase":
+            numberOfGames = factorial(self.teamsPerGroup - 1)
+            # only for tests!!!
+            allGroupNames = ["groupA", "groupB", "groupC", "groupD"]
+            allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
+            for idx, group in enumerate(allGroupNames):
+                for i in range(numberOfGames):
+                    inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "8", "10")
 
-        # only for tests!!!!
-        teamX = ["Team4", "Team9", "Team14", "Team19"]
-        teamY = ["Team8", "Team3", "Team18", "Team13"]
-        for i in range(4):
-            updateQF(teamX[i], teamY[i], "2", "8")
-            insertWinnerQF(teamX[i], teamY[i], "2", "8")
-
-        # insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
-        # updateQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
-        self.updateQFtable()    
+            # inputGameResults(groupValue, teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
+            self.updateTeamInfoTables()
+        elif self._gamePhase == "quater_finals":
+            # only for tests!!!!
+            # teamX = ["Team4", "Team9", "Team14", "Team19"]
+            # teamY = ["Team8", "Team3", "Team18", "Team13"]
+            # for i in range(4):
+            #     updateQF(teamX[i], teamY[i], "2", "8", self.gamePhase)
+            #     insertWinnerQF(teamX[i], teamY[i], "2", "8" , self.gamePhase)
+            insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            self.updateKOtable("quater_finals")    
+        elif self._gamePhase == "semi_finals":
+            updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            self.updateKOtable(self._gamePhase)
+        elif self._gamePhase == "finals":
+            updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            self.updateKOtable(self._gamePhase)
 
         self.teamXname.setText("")
         self.teamYname.setText("")
         self.teamXresult.setText("")
         self.teamYresult.setText("")
 
-    def updateQFtable(self):
-        for _ in range(2):
-            for gameCounter in range(2):
-                    QListWidget.takeItem(self.allCupColsQF[gameCounter + 2], 1)
-                    QListWidget.takeItem(self.allCupColsQF[gameCounter + 6], 1)
+    def _startQFbutton(self):
+        self.fillQFtable()
+        # to avoid table overflowing
+        self.resultGroup.hide()
+        self.group.hide()
+        # nicer user interface
+        self.groupLable.hide()
+        self._gamePhase = "quater_finals"
+        # in the case of a program crash
+        self.updateKOtable("quater_finals")      
+        
+    def _startSFbutton(self):
+        self.fillSFtable()
+        # to avoid table overflowing
+        self.resultQF.hide()
+        # nicer user interface  
+        self._gamePhase = "semi_finals"
+        # in the case of a program crash
+        self.updateKOtable("semi_finals")
 
-        qfTable = catchQF()
-        print(qfTable)
-        for i in range(2):
-            self.allCupColsQF[2].addItem(str(qfTable[i][2]))
-            self.allCupColsQF[3].addItem(str(qfTable[i][3]))
-        for i in range(2, 4):
-            self.allCupColsQF[6].addItem(str(qfTable[i][2]))
-            self.allCupColsQF[7].addItem(str(qfTable[i][3]))
-    
+    def _startFinalbutton(self):
+        self.fillFinaltable()
+        # to avoid table overflowing
+        self.resultSF.hide()
+        # nicer user interface  
+        self._gamePhase = "finals"
+        # in the case of a program crash
+        self.updateKOtable("finals")
+
+    def updateKOtable(self, _xFinalTable):
+        if _xFinalTable == "quater_finals":
+            # clear cup columns
+            for _ in range(2):
+                for gameCounter in range(2):
+                        QListWidget.takeItem(self._allCupColsQF[gameCounter + 2], 1)
+                        QListWidget.takeItem(self._allCupColsQF[gameCounter + 6], 1)
+            # insert new number of cups in columns
+            qfTable = catchQF(self._gamePhase)
+            for i in range(2):
+                self._allCupColsQF[2].addItem(str(qfTable[i][2]))
+                self._allCupColsQF[3].addItem(str(qfTable[i][3]))
+            for i in range(2, 4):
+                self._allCupColsQF[6].addItem(str(qfTable[i][2]))
+                self._allCupColsQF[7].addItem(str(qfTable[i][3]))
+        elif _xFinalTable == "semi_finals":
+            # clear cup columns
+            for gameCounter in range(2):
+                QListWidget.takeItem(self._allCupColsSF[gameCounter + 2], 1)
+                QListWidget.takeItem(self._allCupColsSF[gameCounter + 6], 1)
+            # insert new number of cups in columns
+            sfTable = catchQF(_xFinalTable)
+            self._allCupColsSF[2].addItem(str(sfTable[0][2]))
+            self._allCupColsSF[3].addItem(str(sfTable[0][3]))
+            self._allCupColsSF[6].addItem(str(sfTable[1][2]))
+            self._allCupColsSF[7].addItem(str(sfTable[1][3]))
+        elif _xFinalTable == "finals":
+            # clear cups columns
+            for gameCounter in range(2):
+                QListWidget.takeItem(self._allCupColsFinals[gameCounter + 2], 1)
+                QListWidget.takeItem(self._allCupColsFinals[gameCounter + 6], 1)
+            # insert new number of cups in columns
+            finalTable = catchQF(_xFinalTable)
+            self._allCupColsFinals[2].addItem(str(finalTable[0][2]))
+            self._allCupColsFinals[3].addItem(str(finalTable[0][3]))
+            self._allCupColsFinals[6].addItem(str(finalTable[1][2]))
+            self._allCupColsFinals[7].addItem(str(finalTable[1][3]))
+
     def UiComponents(self):
+        allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D"]
         tableGeometry = 95
         numberOfGames = factorial(self.teamsPerGroup - 1)
-        
+        distanceToGroupStage = ((100 + ((self.teamsPerGroup) * 22)) + (50 + numberOfGames * 22))
         # Create Group Overview
-        teamInfo, _, _ = catchTeamInfo(self.groupNumber)
-        for _ in range(self.groupNumber):
+        teamInfo, _, _ = catchGroupStage(self.groupNumber, "teamInfo")
+        for i in range(self.groupNumber):
+            # set table Header
+            self.groupLable = QLabel(allGroupNames[i], self)
+            self.groupLable.setFont(QFont("Arial", 14, QFont.Bold))
+            self.groupLable.setGeometry(tableGeometry + 110, 75, 100, 22)
+            #  set Tabel
             tableGeometry = self._groupOverview(tableGeometry, teamInfo)
         tableGeometry = 50
-
         # Create Group Stage table
-        infoGroupStages = catchGroupStage(self.groupNumber)
-        for _ in range(self.groupNumber):
+        infoGroupStages = catchGroupStage(self.groupNumber, "groupStage")
+        for i in range(self.groupNumber):
+            self.groupLable = QLabel(allGroupNames[i], self)
+            self.groupLable.setFont(QFont("Arial", 14, QFont.Bold))
+            self.groupLable.setGeometry(tableGeometry + 160, 210, 100, 22)
             tableGeometry = self._createGroupTable(tableGeometry, infoGroupStages, numberOfGames)
-
         # Create Quater Final table
         if self.groupNumber >= 4:
             tableGeometry = 500
-            distanceToGroupStage = ((50 + ((self.teamsPerGroup) * 21)) + (50 + numberOfGames * 21))
-            tableHeigh = 3 * 21
+            distanceToGroupStage = ((175 + ((self.teamsPerGroup) * 22)) + (50 + numberOfGames * 22))
+            tableHeigh = 3 * 22
+            self.groupLable = QLabel("Viertelfinale", self)
+            self.groupLable.setFont(QFont("Arial", 18, QFont.Bold))
+            self.groupLable.setGeometry(tableGeometry + 355, distanceToGroupStage - 35, 150, 22)
             for _ in range(2):
-                tableGeometry = self._createTableKO(tableGeometry, distanceToGroupStage, tableHeigh, numberOfGames, "qf")
-
+                tableGeometry = self._createTableKO(tableGeometry, distanceToGroupStage, tableHeigh, "qf")
         # Create Semi Final table
         if self.groupNumber >= 2:
             tableGeometry = 500
-            distanceToQFStage = distanceToGroupStage + tableHeigh + 50
-            tableHeigh = 2 * 21
+            tableHeigh = 2 * 22
+            distanceToQFStage = distanceToGroupStage + tableHeigh + 95
+            self.groupLable = QLabel("Halbfinale", self)
+            self.groupLable.setFont(QFont("Arial", 18, QFont.Bold))
+            self.groupLable.setGeometry(tableGeometry + 365, distanceToQFStage - 35, 150, 22)
             for _ in range(2):
-                tableGeometry = self._createTableKO(tableGeometry, distanceToQFStage, tableHeigh, numberOfGames, "sf")
-
+                tableGeometry = self._createTableKO(tableGeometry, distanceToQFStage, tableHeigh, "sf")
         # Create Final table
         tableGeometry = 50
-        distanceToSF = distanceToQFStage + tableHeigh + 50
-        tableHeigh = 2 * 21
+        distanceToSF = distanceToQFStage + tableHeigh + 75
+        tableHeigh = 2 * 22
+        self.groupLable = QLabel("Finale", self)
+        self.groupLable.setFont(QFont("Arial", 18, QFont.Bold))
+        self.groupLable.setGeometry(tableGeometry + 835, distanceToSF - 35, 150, 22)
         for _ in range(2):
-            tableGeometry = self._createTableKO(tableGeometry, distanceToSF, tableHeigh, numberOfGames, "final")
+            tableGeometry = self._createTableKO(tableGeometry, distanceToSF, tableHeigh, "final")
 
-        self.resultUserInput()
+        self._userInput()
 
 
 # create pyqt5 app
