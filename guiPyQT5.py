@@ -7,6 +7,8 @@ from math import factorial
 from updateGame import inputGameResults, catchGroupStage, addQF, catchQF, updateKOtabelDB,\
                        insertWinnerQF, catchWinner, addSF, addFinals
 
+#Johnny war da
+
 class Header:
     def __init__(self) -> None:
         self.group = QListWidgetItem("Gruppe")
