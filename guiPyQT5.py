@@ -13,8 +13,8 @@ class Header:
         self.teamX = QtWidgets.QListWidgetItem("Team 1")
         self.teamY = QtWidgets.QListWidgetItem("Team 2")
         self.teamName = QtWidgets.QListWidgetItem("Team Name")
-        self.cupsX = QtWidgets.QListWidgetItem("Cups")
-        self.cupsY = QtWidgets.QListWidgetItem("Cups")
+        self.cupsX = QtWidgets.QListWidgetItem("Cup")
+        self.cupsY = QtWidgets.QListWidgetItem("Cup")
         self.rank = QtWidgets.QListWidgetItem("Platz")
         self.points = QtWidgets.QListWidgetItem("Punkte")
         pass
@@ -52,7 +52,7 @@ class Window(QtWidgets.QMainWindow):
         points = QtWidgets.QListWidget(self)
         # creating table
         distancToBorder = 100
-        tableHigh = self.teamsPerGroup * 22
+        tableHigh = self.teamsPerGroup * 26
         rank.setGeometry(tableGeometry, distancToBorder, 50, tableHigh)
         tableGeometry += 50
         teamName.setGeometry(tableGeometry, distancToBorder, 150, tableHigh)
@@ -81,22 +81,34 @@ class Window(QtWidgets.QMainWindow):
         self._allCupColsTeamInfo.append(points)
         return tableGeometry
 
+    def creatColTime(self, tableGeometry, distanceToGroupOverview, tableHigh, numberOfGames):
+        col0time = QtWidgets.QListWidget(self)
+        # creating table
+        col0time.setGeometry(tableGeometry - 47, distanceToGroupOverview, 47, tableHigh)
+        # fill time col
+        timeSlots = ["", "18:00", "18:15", "18:30", "18:45", "19:00", "19:15"]
+        for i in range(numberOfGames + 1):
+            col0time.addItem(timeSlots[i])
+
     def _createGroupTable(self, tableGeometry, infoGroupStages, numberOfGames):
         col1TeamNameX = QtWidgets.QListWidget(self)
         col2TeamNameY = QtWidgets.QListWidget(self)
         col3GroupStageCups = QtWidgets.QListWidget(self)
         col4GroupStageCups = QtWidgets.QListWidget(self)
         # creating table
-        distanceToGroupOverview = 150 + ((self.teamsPerGroup) * 22)
-        tableHigh = (numberOfGames * 22)
-        col1TeamNameX.setGeometry(tableGeometry, distanceToGroupOverview, 235, tableHigh)
+        distanceToGroupOverview = 150 + ((self.teamsPerGroup) * 23)
+        tableHigh = (numberOfGames * 23)
+        # create static TimeSlots table (not in the end version!!!)
+        self.creatColTime(tableGeometry, distanceToGroupOverview, tableHigh, numberOfGames)
+
+        col1TeamNameX.setGeometry(tableGeometry, distanceToGroupOverview, 150, tableHigh)
         tableGeometry += 150
         col2TeamNameY.setGeometry(tableGeometry, distanceToGroupOverview, 150, tableHigh)
         tableGeometry += 150
-        col3GroupStageCups.setGeometry(tableGeometry, distanceToGroupOverview, 50, tableHigh)
-        tableGeometry += 50
-        col4GroupStageCups.setGeometry(tableGeometry, distanceToGroupOverview, 50, tableHigh)
-        tableGeometry += 100
+        col3GroupStageCups.setGeometry(tableGeometry, distanceToGroupOverview, 35, tableHigh)
+        tableGeometry += 35
+        col4GroupStageCups.setGeometry(tableGeometry, distanceToGroupOverview, 35, tableHigh)
+        tableGeometry += 110
         # set headers
         groupStageHeader = Header()
         col1TeamNameX.addItem(groupStageHeader.teamX)
@@ -255,46 +267,46 @@ class Window(QtWidgets.QMainWindow):
         # Headers
         self.groupLable = QtWidgets.QLabel("Gruppe", self)
         self.groupLable.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
-        self.groupLable.setGeometry(60, 828, 70, 22)
+        self.groupLable.setGeometry(60, 828, 70, 23)
         teamXnameLable = QtWidgets.QLabel("Team1", self)
         teamXnameLable.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Bold))
-        teamXnameLable.setGeometry(175, 828, 150, 22)
+        teamXnameLable.setGeometry(175, 828, 150, 23)
         teamYnameLable = QtWidgets.QLabel("Team2", self)
         teamYnameLable.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Bold))
-        teamYnameLable.setGeometry(325, 828, 150, 22)
+        teamYnameLable.setGeometry(325, 828, 150, 23)
         teamXresultLable = QtWidgets.QLabel("Cups", self)
         teamXresultLable.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Bold))
-        teamXresultLable.setGeometry(435, 828, 50, 22)
+        teamXresultLable.setGeometry(435, 828, 50, 23)
         teamYresultLable = QtWidgets.QLabel("Cups", self)
         teamYresultLable.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Bold))
-        teamYresultLable.setGeometry(485, 828, 50, 22)
+        teamYresultLable.setGeometry(485, 828, 50, 23)
 
         self.groupLable.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
         # userInput
         self.group = QtWidgets.QComboBox(self)
-        self.group.setGeometry(50, 850, 80, 22)
+        self.group.setGeometry(50, 850, 80, 23)
         groupChoice = ["groupA", "groupB", "groupC", "groupD"]
         self.group.addItems(groupChoice)
         self.teamXname = QtWidgets.QLineEdit(self)
-        self.teamXname.setGeometry(130, 850, 150, 22)
+        self.teamXname.setGeometry(130, 850, 150, 23)
         self.teamYname = QtWidgets.QLineEdit(self)
-        self.teamYname.setGeometry(280, 850, 150, 22)
+        self.teamYname.setGeometry(280, 850, 150, 23)
         self.teamXresult = QtWidgets.QLineEdit(self)
-        self.teamXresult.setGeometry(430, 850, 50, 22)
+        self.teamXresult.setGeometry(430, 850, 50, 23)
         self.teamYresult = QtWidgets.QLineEdit(self)
-        self.teamYresult.setGeometry(480, 850, 50, 22)
+        self.teamYresult.setGeometry(480, 850, 50, 23)
         # buttons
         self.resultGroup = QtWidgets.QPushButton('hinzufügen', self)
-        self.resultGroup.setGeometry(530, 850, 150, 22)
+        self.resultGroup.setGeometry(530, 850, 150, 23)
         self.resultGroup.clicked.connect(self._inputResultbutton)
         self.resultSF = QtWidgets.QPushButton('start Finale', self)
-        self.resultSF.setGeometry(530, 872, 150, 22)
+        self.resultSF.setGeometry(530, 872, 150, 23)
         self.resultSF.clicked.connect(self._startFinalbutton)
         self.resultQF = QtWidgets.QPushButton('start Halb Finale', self)
-        self.resultQF.setGeometry(530, 872, 150, 22)
+        self.resultQF.setGeometry(530, 872, 150, 23)
         self.resultQF.clicked.connect(self._startSFbutton)
         self.resultGroup = QtWidgets.QPushButton('start Viertel Finale', self)
-        self.resultGroup.setGeometry(530, 872, 150, 22)
+        self.resultGroup.setGeometry(530, 872, 150, 23)
         self.resultGroup.clicked.connect(self._startQFbutton)
     
         self.show()
@@ -313,7 +325,7 @@ class Window(QtWidgets.QMainWindow):
             allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
             for idx, group in enumerate(allGroupNames):
                 for i in range(numberOfGames):
-                    inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "8", "10")
+                    inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "10", "8")
 
             # inputGameResults(groupValue, teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
             self.updateTeamInfoTables()
@@ -411,51 +423,51 @@ class Window(QtWidgets.QMainWindow):
         allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D"]
         tableGeometry = 95
         numberOfGames = factorial(self.teamsPerGroup - 1)
-        distanceToGroupStage = ((100 + ((self.teamsPerGroup) * 22)) + (50 + numberOfGames * 22))
+        distanceToGroupStage = ((100 + ((self.teamsPerGroup) * 23)) + (50 + numberOfGames * 23))
         # Create Group Overview
         teamInfo, _, _ = catchGroupStage(self.groupNumber, "teamInfo")
         for i in range(self.groupNumber):
             # set table Header
             self.groupLable = QtWidgets.QLabel(allGroupNames[i], self)
             self.groupLable.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
-            self.groupLable.setGeometry(tableGeometry + 110, 75, 100, 22)
+            self.groupLable.setGeometry(tableGeometry + 110, 75, 100, 23)
             #  set Tabel
             tableGeometry = self._groupOverview(tableGeometry, teamInfo)
-        tableGeometry = 50
+        tableGeometry = 60
         # Create Group Stage table
         infoGroupStages = catchGroupStage(self.groupNumber, "groupStage")
         for i in range(self.groupNumber):
             self.groupLable = QtWidgets.QLabel(allGroupNames[i], self)
             self.groupLable.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
-            self.groupLable.setGeometry(tableGeometry + 160, 210, 100, 22)
-            tableGeometry = self._createGroupTable(tableGeometry, infoGroupStages, numberOfGames)
+            self.groupLable.setGeometry(tableGeometry + 160, 210, 100, 23)
+            tableGeometry = self._createGroupTable(tableGeometry + 15, infoGroupStages, numberOfGames)
         # Create Quater Final table
         if self.groupNumber >= 4:
             tableGeometry = 500
-            distanceToGroupStage = ((175 + ((self.teamsPerGroup) * 22)) + (50 + numberOfGames * 22))
-            tableHeigh = 3 * 22
+            distanceToGroupStage = ((175 + ((self.teamsPerGroup) * 23)) + (50 + numberOfGames * 23))
+            tableHeigh = 3 * 23
             self.groupLable = QtWidgets.QLabel("Viertelfinale", self)
             self.groupLable.setFont(QtGui.QFont("Arial", 18, QtGui.QFont.Bold))
-            self.groupLable.setGeometry(tableGeometry + 355, distanceToGroupStage - 35, 150, 22)
+            self.groupLable.setGeometry(tableGeometry + 355, distanceToGroupStage - 35, 150, 23)
             for _ in range(2):
                 tableGeometry = self._createTableKO(tableGeometry, distanceToGroupStage, tableHeigh, "qf")
         # Create Semi Final table
         if self.groupNumber >= 2:
             tableGeometry = 500
-            tableHeigh = 2 * 22
+            tableHeigh = 2 * 23
             distanceToQFStage = distanceToGroupStage + tableHeigh + 95
             self.groupLable = QtWidgets.QLabel("Halbfinale", self)
             self.groupLable.setFont(QtGui.QFont("Arial", 18, QtGui.QFont.Bold))
-            self.groupLable.setGeometry(tableGeometry + 365, distanceToQFStage - 35, 150, 22)
+            self.groupLable.setGeometry(tableGeometry + 365, distanceToQFStage - 35, 150, 23)
             for _ in range(2):
                 tableGeometry = self._createTableKO(tableGeometry, distanceToQFStage, tableHeigh, "sf")
         # Create Final table
         tableGeometry = 50
         distanceToSF = distanceToQFStage + tableHeigh + 75
-        tableHeigh = 2 * 22
+        tableHeigh = 2 * 23
         self.groupLable = QtWidgets.QLabel("Finale", self)
         self.groupLable.setFont(QtGui.QFont("Arial", 18, QtGui.QFont.Bold))
-        self.groupLable.setGeometry(tableGeometry + 835, distanceToSF - 35, 150, 22)
+        self.groupLable.setGeometry(tableGeometry + 835, distanceToSF - 35, 150, 23)
         for _ in range(2):
             tableGeometry = self._createTableKO(tableGeometry, distanceToSF, tableHeigh, "final")
 

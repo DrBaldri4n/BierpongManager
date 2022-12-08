@@ -43,14 +43,21 @@ def createGroupStage(allGroupNames, groupNumbers):
         groupSize = cur.fetchall()
         groupSize = groupSize[0][0]
 
-        cupsX = 0
-        cupsY = 0
+        groupStage = []
         print(allGroupNames[indexGroup])
         for j in range(groupSize - 1):
             for i in range(j + 1, groupSize):
-                print(groupX[j][0], " vs ", groupX[i][0])
-                cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupX[j][0] + "', '" + groupX[i][0] + "', 0, 0)")
-
+                groupStage.append([groupX[j][0], groupX[i][0]])
+        pos = 0
+        for _ in range(len(groupStage)):
+            print(groupStage[pos][0] + " vs " + groupStage[pos][1])
+            cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupStage[pos][0] + "', '" + groupStage[pos][1] + "', 0, 0)")
+            groupStage.pop(pos)
+            # TODO smarter solution??
+            if pos == 0:
+                pos -= 1
+            else: 
+                pos += 1
 
 def addNewTeam(allTeamNames):
     teamName = input("Teamname = ")
@@ -94,14 +101,14 @@ def main():
 
     #only for tests!!!!
     allTeamsGroupA = [
-                ('Team1', 0, 0, 1),
+                ('SpVgg Warnweste', 0, 0, 1),
                 ('Team2', 0, 0, 1),
                 ('Team3', 0, 0, 1),
                 ('Team4', 0, 0, 1),
                 ]
     allTeamsGroupB = [
-                ('Team6', 0, 0, 1),
-                ('Team7', 0, 0, 1),
+                ('Auffallen durch Umfallen', 0, 0, 1),
+                ('Scheissdanixdannfahltdanix', 0, 0, 1),
                 ('Team8', 0, 0, 1),
                 ('Team9', 0, 0, 1),
                 ]
