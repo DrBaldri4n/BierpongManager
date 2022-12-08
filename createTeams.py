@@ -49,6 +49,7 @@ def createGroupStage(allGroupNames, groupNumbers):
             for i in range(j + 1, groupSize):
                 groupStage.append([groupX[j][0], groupX[i][0]])
         pos = 0
+
         for _ in range(len(groupStage)):
             print(groupStage[pos][0] + " vs " + groupStage[pos][1])
             cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupStage[pos][0] + "', '" + groupStage[pos][1] + "', 0, 0)")
@@ -124,10 +125,25 @@ def main():
                 ('Team18', 0, 0, 1),
                 ('Team19', 0, 0, 1),
                 ]
+    allTeamsGroupE = [
+                ('Team21', 0, 0, 1),
+                ('Team22', 0, 0, 1),
+                ('Team23', 0, 0, 1),
+                ('Team24', 0, 0, 1),
+                ]
+    allTeamsGroupF = [
+                ('Team26', 0, 0, 1),
+                ('Team27', 0, 0, 1),
+                ('Team28', 0, 0, 1),
+                ('Team29', 0, 0, 1),
+                ]
+
     cur.executemany("INSERT INTO groupA VALUES (?,?,?,?)", allTeamsGroupA)
     cur.executemany("INSERT INTO groupB VALUES (?,?,?,?)", allTeamsGroupB)
     cur.executemany("INSERT INTO groupC VALUES (?,?,?,?)", allTeamsGroupC)
     cur.executemany("INSERT INTO groupD VALUES (?,?,?,?)", allTeamsGroupD)
+    cur.executemany("INSERT INTO groupE VALUES (?,?,?,?)", allTeamsGroupE)
+    cur.executemany("INSERT INTO groupF VALUES (?,?,?,?)", allTeamsGroupF)
 
     createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)

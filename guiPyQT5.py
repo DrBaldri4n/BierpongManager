@@ -30,7 +30,7 @@ class Window(QtWidgets.QMainWindow):
         self.lable.resize(1920, 1080)
 
         # user can change this Variables
-        self.groupNumber = 4
+        self.groupNumber = 6
         self.teamsPerGroup = 4
 
         #TODO make this beautifull
@@ -74,7 +74,6 @@ class Window(QtWidgets.QMainWindow):
             cups.addItem(str(teamInfo[0][i][1]))
             points.addItem(str(teamInfo[0][i][2]))
         teamInfo.pop(0)
-
         # needed to update Rank, Cups and Points
         self._allCupColsTeamInfo.append(rank)
         self._allCupColsTeamInfo.append(cups)
@@ -285,7 +284,7 @@ class Window(QtWidgets.QMainWindow):
         # userInput
         self.group = QtWidgets.QComboBox(self)
         self.group.setGeometry(50, 850, 80, 23)
-        groupChoice = ["groupA", "groupB", "groupC", "groupD"]
+        groupChoice = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"]
         self.group.addItems(groupChoice)
         self.teamXname = QtWidgets.QLineEdit(self)
         self.teamXname.setGeometry(130, 850, 150, 23)
@@ -321,7 +320,7 @@ class Window(QtWidgets.QMainWindow):
         if self._gamePhase == "group_phase":
             numberOfGames = factorial(self.teamsPerGroup - 1)
             # only for tests!!!
-            allGroupNames = ["groupA", "groupB", "groupC", "groupD"]
+            allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF"] # should change variable 
             allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
             for idx, group in enumerate(allGroupNames):
                 for i in range(numberOfGames):
@@ -420,8 +419,8 @@ class Window(QtWidgets.QMainWindow):
             self._allCupColsFinals[7].addItem(str(finalTable[1][3]))
 
     def UiComponents(self):
-        allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D"]
-        tableGeometry = 95
+        allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D", "groupE", "groupF"] # should change variable
+        tableGeometry = 0
         numberOfGames = factorial(self.teamsPerGroup - 1)
         distanceToGroupStage = ((100 + ((self.teamsPerGroup) * 23)) + (50 + numberOfGames * 23))
         # Create Group Overview
