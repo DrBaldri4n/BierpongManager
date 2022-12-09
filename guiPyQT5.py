@@ -17,7 +17,7 @@ class Header:
         self.cupsY = QtWidgets.QListWidgetItem("Cup")
         self.rank = QtWidgets.QListWidgetItem("Platz")
         self.points = QtWidgets.QListWidgetItem("Punkte")
-        pass
+        pass #test
 
 class Window(QtWidgets.QMainWindow):
 
