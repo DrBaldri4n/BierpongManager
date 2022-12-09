@@ -30,7 +30,7 @@ class Window(QtWidgets.QMainWindow):
         self.lable.resize(1920, 1080)
 
         # user can change this Variables
-        self.groupNumber = 6
+        self.groupNumber = 8
         self.teamsPerGroup = 4
 
         #TODO make this beautifull
@@ -320,7 +320,7 @@ class Window(QtWidgets.QMainWindow):
         if self._gamePhase == "group_phase":
             numberOfGames = factorial(self.teamsPerGroup - 1)
             # only for tests!!!
-            allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF"] # should change variable 
+            allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"] # should change variable 
             allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
             for idx, group in enumerate(allGroupNames):
                 for i in range(numberOfGames):
@@ -419,7 +419,7 @@ class Window(QtWidgets.QMainWindow):
             self._allCupColsFinals[7].addItem(str(finalTable[1][3]))
 
     def UiComponents(self):
-        allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D", "groupE", "groupF"] # should change variable
+        allGroupNames = ["Gruppe A", "Gruppe B", "Gruppe C", "Gruppe D", "groupE", "groupF", "groupG", "groupH"] # should change variable
         tableGeometry = 0
         numberOfGames = factorial(self.teamsPerGroup - 1)
         distanceToGroupStage = ((100 + ((self.teamsPerGroup) * 23)) + (50 + numberOfGames * 23))

@@ -7,7 +7,7 @@ def createGroups():
     groupNumbers = input("wie viel Gruppen soll es geben?(zwischen 2 und 8 und nur gerade): ")
     #TODO error meldung einbauen, wenn gruppenzahl falsch eingegeben
     groupNumbers = int(groupNumbers)
-    for i in range(groupNumbers):                                          # TODO team_nameX, team_nameY
+    for i in range(groupNumbers):                                       # TODO team_nameX, team_nameY
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] +   " (team_name TEXT PRIMARY KEY,\
                                                                             cups INTEGER,\
                                                                             points INTEGER,\
@@ -137,6 +137,18 @@ def main():
                 ('Team28', 0, 0, 1),
                 ('Team29', 0, 0, 1),
                 ]
+    allTeamsGroupG = [
+                ('Team31', 0, 0, 1),
+                ('Team32', 0, 0, 1),
+                ('Team33', 0, 0, 1),
+                ('Team34', 0, 0, 1),
+                ]
+    allTeamsGroupH = [
+                ('Team36', 0, 0, 1),
+                ('Team37', 0, 0, 1),
+                ('Team38', 0, 0, 1),
+                ('Team39', 0, 0, 1),
+                ]
 
     cur.executemany("INSERT INTO groupA VALUES (?,?,?,?)", allTeamsGroupA)
     cur.executemany("INSERT INTO groupB VALUES (?,?,?,?)", allTeamsGroupB)
@@ -144,6 +156,8 @@ def main():
     cur.executemany("INSERT INTO groupD VALUES (?,?,?,?)", allTeamsGroupD)
     cur.executemany("INSERT INTO groupE VALUES (?,?,?,?)", allTeamsGroupE)
     cur.executemany("INSERT INTO groupF VALUES (?,?,?,?)", allTeamsGroupF)
+    cur.executemany("INSERT INTO groupG VALUES (?,?,?,?)", allTeamsGroupG)
+    cur.executemany("INSERT INTO groupH VALUES (?,?,?,?)", allTeamsGroupH)
 
     createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)
