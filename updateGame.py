@@ -44,13 +44,22 @@ def _calcGroupWinner(teamInfo):
 
     return groupWinnerFirst, groupWinnerSecond
 
-def addQF(teamX, teamY, cupsX, cupsY):
+def addEight(teamX, teamY, cupsX, cupsY, xFinalTable):
     cur, conn = _openDB()
-    cur.execute("SELECT COUNT(*) FROM quater_finals")
+    cur.execute("SELECT COUNT(*) FROM " + xFinalTable)
+    teamNumber = cur.fetchall()
+    # TODO Error Handling
+    if int(teamNumber[0][0]) < 8:
+        cur.execute("INSERT INTO " + xFinalTable + " (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
+    _closeDB(conn)
+
+def addQF(teamX, teamY, cupsX, cupsY, xFinalTable):
+    cur, conn = _openDB()
+    cur.execute("SELECT COUNT(*) FROM " + xFinalTable)
     teamNumber = cur.fetchall()
     # TODO Error Handling
     if int(teamNumber[0][0]) < 4:
-        cur.execute("INSERT INTO quater_finals (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
+        cur.execute("INSERT INTO " + xFinalTable + " (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
     _closeDB(conn)
 
 def addSF(teamX, teamY, cupsX, cupsY, xFinalTable):

@@ -1,8 +1,8 @@
 import sys
-from PyQt5 import QtWidgets, QtGui # test with gui commit
+from PyQt5 import QtWidgets, QtGui
 from math import factorial
 
-from updateGame import inputGameResults, catchGroupStage, addQF, catchQF, updateKOtabelDB,\
+from updateGame import inputGameResults, catchGroupStage, addEight, addQF, catchQF, updateKOtabelDB,\
                        insertWinnerQF, catchWinner, addSF, addFinals
 
 class Header:
@@ -34,11 +34,12 @@ class KOWindow(QtWidgets.QWidget):
         #TODO make this beautifull
         self._allCupColsTeamInfo = []
         self._allCupColsGroupStage = []
-        self._allCupColsSF = []
+        self._allCupColsEight = []
         self._allCupColsQF = []
+        self._allCupColsSF = []
         self._allCupColsFinals = []
 
-        self._gamePhase = "quater_finals"
+        self._gamePhase = "eight_finals"
 
         self.uiComponents1()
         self.show()
@@ -63,6 +64,9 @@ class KOWindow(QtWidgets.QWidget):
         col3.addItem(finalHeader.cupsX)
         col4.addItem(finalHeader.cupsY)
         # needed to update later cups in the table
+        if tableID == "eight":
+            self._addAllCupColsEight(col1, col2, col3, col4)
+            tableGeometry += 100
         if tableID == "qf":
             self._addAllCupColsQF(col1, col2, col3, col4)
             tableGeometry += 100
@@ -75,11 +79,11 @@ class KOWindow(QtWidgets.QWidget):
             
         return tableGeometry
 
-    def _addAllCupColsSF(self, col1, col2, col3QFcups, col4QFcups):
-        self._allCupColsSF.append(col1)
-        self._allCupColsSF.append(col2)
-        self._allCupColsSF.append(col3QFcups)
-        self._allCupColsSF.append(col4QFcups)
+    def _addAllCupColsEight(self, col1, col2, col3QFcups, col4QFcups):
+        self._allCupColsEight.append(col1)
+        self._allCupColsEight.append(col2)
+        self._allCupColsEight.append(col3QFcups)
+        self._allCupColsEight.append(col4QFcups)
 
     def _addAllCupColsQF(self, col1, col2, col3QFcups, col4QFcups):
         self._allCupColsQF.append(col1)
@@ -87,25 +91,30 @@ class KOWindow(QtWidgets.QWidget):
         self._allCupColsQF.append(col3QFcups)
         self._allCupColsQF.append(col4QFcups)
 
+    def _addAllCupColsSF(self, col1, col2, col3QFcups, col4QFcups):
+        self._allCupColsSF.append(col1)
+        self._allCupColsSF.append(col2)
+        self._allCupColsSF.append(col3QFcups)
+        self._allCupColsSF.append(col4QFcups)
+
     def _addAllCupColsFinals(self, col1, col2, col3Final, col4Final):
         self._allCupColsFinals.append(col1)
         self._allCupColsFinals.append(col2)
         self._allCupColsFinals.append(col3Final)
         self._allCupColsFinals.append(col4Final)
 
-
-    def fillQFtable(self):
+    def fillEightTable(self):
         _, groupWinnerFirst, groupWinnerSecond = catchGroupStage(self.groupNumber, "teamInfo")
         
         rank1VSrank2 = 1
-        for groupCounter in range(0, len(self._allCupColsQF), 4):
+        for groupCounter in range(0, len(self._allCupColsEight), 4):
             for _ in range(2):
-                self._allCupColsQF[groupCounter].addItem(groupWinnerFirst[0][0])
-                self._allCupColsQF[groupCounter+1].addItem(groupWinnerSecond[rank1VSrank2][0])
-                self._allCupColsQF[groupCounter+2].addItem("0")
-                self._allCupColsQF[groupCounter+3].addItem("0")
+                self._allCupColsEight[groupCounter].addItem(groupWinnerFirst[0][0])
+                self._allCupColsEight[groupCounter+1].addItem(groupWinnerSecond[rank1VSrank2][0])
+                self._allCupColsEight[groupCounter+2].addItem("0")
+                self._allCupColsEight[groupCounter+3].addItem("0")
 
-                addQF(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0 , 0)
+                addEight(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0 , 0, self._gamePhase)
                 
                 groupWinnerFirst.pop(0)
                 if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
@@ -114,6 +123,21 @@ class KOWindow(QtWidgets.QWidget):
                 elif rank1VSrank2 == 0:
                     groupWinnerSecond.pop(0)
                     rank1VSrank2 = 1
+
+    def fillQFtable(self):
+        winnerEightFinals = catchWinner("eight_finals")
+        
+        for _ in range(2):
+            for groupCounter in range(0, len(self._allCupColsQF), 4):
+                self._allCupColsQF[groupCounter].addItem(winnerEightFinals[0][0])
+                self._allCupColsQF[groupCounter+1].addItem(winnerEightFinals[len(winnerEightFinals)-1][0])
+                self._allCupColsQF[groupCounter+2].addItem("0")
+                self._allCupColsQF[groupCounter+3].addItem("0")
+
+                addQF(winnerEightFinals[0][0], winnerEightFinals[len(winnerEightFinals)-1][0], 0 , 0, "quater_finals")
+                
+                winnerEightFinals.pop(0)
+                winnerEightFinals.pop(len(winnerEightFinals)-1)
 
     def fillSFtable(self):
         winnerQF = catchWinner("quater_finals")
@@ -154,7 +178,30 @@ class KOWindow(QtWidgets.QWidget):
             winnerSF.pop(len(winnerSF)-1)
 
     def updateKOtable(self, _xFinalTable):
-        if _xFinalTable == "quater_finals":
+
+        if _xFinalTable == "eight_finals":
+            for _ in range(4):
+                for gameCounter in range(2):
+                        QtWidgets.QListWidget.takeItem(self._allCupColsEight[gameCounter + 2], 1)
+                        QtWidgets.QListWidget.takeItem(self._allCupColsEight[gameCounter + 6], 1)
+                        QtWidgets.QListWidget.takeItem(self._allCupColsEight[gameCounter + 10], 1)
+                        QtWidgets.QListWidget.takeItem(self._allCupColsEight[gameCounter + 14], 1)
+            # insert new number of cups in columns
+            eightTable = catchQF(self._gamePhase)
+            for i in range(2):
+                self._allCupColsEight[2].addItem(str(eightTable[i][2]))
+                self._allCupColsEight[3].addItem(str(eightTable[i][3]))
+            for i in range(2, 4):
+                self._allCupColsEight[6].addItem(str(eightTable[i][2]))
+                self._allCupColsEight[7].addItem(str(eightTable[i][3]))
+            for i in range(4, 6):
+                self._allCupColsEight[10].addItem(str(eightTable[i][2]))
+                self._allCupColsEight[11].addItem(str(eightTable[i][3]))
+            for i in range(6, 8):
+                self._allCupColsEight[14].addItem(str(eightTable[i][2]))
+                self._allCupColsEight[15].addItem(str(eightTable[i][3]))
+            
+        elif _xFinalTable == "quater_finals":
             # clear cup columns
             for _ in range(2):
                 for gameCounter in range(2):
@@ -162,12 +209,19 @@ class KOWindow(QtWidgets.QWidget):
                         QtWidgets.QListWidget.takeItem(self._allCupColsQF[gameCounter + 6], 1)
             # insert new number of cups in columns
             qfTable = catchQF(self._gamePhase)
-            for i in range(2):
+            for i in range(1):
                 self._allCupColsQF[2].addItem(str(qfTable[i][2]))
                 self._allCupColsQF[3].addItem(str(qfTable[i][3]))
-            for i in range(2, 4):
-                self._allCupColsQF[6].addItem(str(qfTable[i][2]))
-                self._allCupColsQF[7].addItem(str(qfTable[i][3]))
+                self._allCupColsQF[2].addItem(str(qfTable[i+2][2]))
+                self._allCupColsQF[3].addItem(str(qfTable[i+2][3]))
+                self._allCupColsQF[6].addItem(str(qfTable[i+1][2]))
+                self._allCupColsQF[7].addItem(str(qfTable[i+1][3]))
+                self._allCupColsQF[6].addItem(str(qfTable[i+3][2]))
+                self._allCupColsQF[7].addItem(str(qfTable[i+3][3]))
+            # for i in range(2, 4):
+            #     self._allCupColsQF[6].addItem(str(qfTable[i][2]))
+            #     self._allCupColsQF[7].addItem(str(qfTable[i][3]))
+                
         elif _xFinalTable == "semi_finals":
             # clear cup columns
             for gameCounter in range(2):
@@ -197,20 +251,21 @@ class KOWindow(QtWidgets.QWidget):
         team1ResultValue = self.teamXresult.text()
         team2ResultValue = self.teamYresult.text()
 
-        if self._gamePhase == "quater_finals":
-            # only for tests!!!!
-            # teamX = ["Team4", "Team9", "Team14", "Team19"]
-            # teamY = ["Team8", "Team3", "Team18", "Team13"]
-            # for i in range(4):
-            #     updateQF(teamX[i], teamY[i], "2", "8", self.gamePhase)
-            #     insertWinnerQF(teamX[i], teamY[i], "2", "8" , self.gamePhase)
-            insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+        if self._gamePhase == "eight_finals":
             updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
-            self.updateKOtable("quater_finals")    
+            insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            self.updateKOtable(self._gamePhase)
+
+        elif self._gamePhase == "quater_finals":
+            updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
+            self.updateKOtable(self._gamePhase)  
+
         elif self._gamePhase == "semi_finals":
             updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
             insertWinnerQF(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
             self.updateKOtable(self._gamePhase)
+
         elif self._gamePhase == "finals":
             updateKOtabelDB(teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue, self._gamePhase)
             self.updateKOtable(self._gamePhase)
@@ -220,10 +275,18 @@ class KOWindow(QtWidgets.QWidget):
         self.teamXresult.setText("")
         self.teamYresult.setText("")
 
+    def _startQFbutton(self): # TODO not needed
+        self.fillQFtable()
+        # to avoid table overflowing
+        self.resultQF.hide()
+        self._gamePhase = "quater_finals"
+        # in the case of a program crash
+        self.updateKOtable("quater_finals") 
+
     def _startSFbutton(self):
         self.fillSFtable()
         # to avoid table overflowing
-        self.resultQF.hide()
+        self.resultSF.hide()
         # nicer user interface  
         self._gamePhase = "semi_finals"
         # in the case of a program crash
@@ -232,7 +295,7 @@ class KOWindow(QtWidgets.QWidget):
     def _startFinalbutton(self):
         self.fillFinaltable()
         # to avoid table overflowing
-        self.resultSF.hide()
+        self.resultF.hide()
         # nicer user interface  
         self._gamePhase = "finals"
         # in the case of a program crash
@@ -267,17 +330,31 @@ class KOWindow(QtWidgets.QWidget):
         self.resultGroup = QtWidgets.QPushButton('hinzufügen', self)
         self.resultGroup.setGeometry(530, 850, 150, 23)
         self.resultGroup.clicked.connect(self.inputResultbutton)
-        self.resultSF = QtWidgets.QPushButton('start Finale', self)
+        self.resultF = QtWidgets.QPushButton('start Finale', self)
+        self.resultF.setGeometry(530, 872, 150, 23)
+        self.resultF.clicked.connect(self._startFinalbutton)
+        self.resultSF = QtWidgets.QPushButton('start Halbfinale', self)
         self.resultSF.setGeometry(530, 872, 150, 23)
-        self.resultSF.clicked.connect(self._startFinalbutton)
-        self.resultQF = QtWidgets.QPushButton('start Halb Finale', self)
+        self.resultSF.clicked.connect(self._startSFbutton)
+        self.resultQF = QtWidgets.QPushButton('start Viertelfinale', self)
         self.resultQF.setGeometry(530, 872, 150, 23)
-        self.resultQF.clicked.connect(self._startSFbutton)
+        self.resultQF.clicked.connect(self._startQFbutton)
 
-    def uiComponents1(self):
+    def uiComponents1(self): # TODO Rename
         tableGeometry = 75
         posYaxis = 100
         numberOfGames = factorial(self.teamsPerGroup - 1)
+
+        # Create Eight Final table
+        if self.groupNumber >= 8:
+            tableGeometry = 50
+            distanceTopBoder = 150
+            tableHeigh = 3 * 23
+            self.groupLable = QtWidgets.QLabel("Achtelfinale", self)
+            self.groupLable.setFont(QtGui.QFont("Arial", 18, QtGui.QFont.Bold))
+            self.groupLable.setGeometry(tableGeometry + 805, distanceTopBoder - 35, 150, 23)
+            for _ in range(4):
+                tableGeometry = self._createTableKO(tableGeometry, distanceTopBoder, tableHeigh, "eight")
 
         # Create Quater Final table
         if self.groupNumber >= 4:
@@ -290,7 +367,9 @@ class KOWindow(QtWidgets.QWidget):
             for _ in range(2):
                 tableGeometry = self._createTableKO(tableGeometry, distanceToGroupStage, tableHeigh, "qf")
 
-        self.fillQFtable()
+        self.fillEightTable()
+        self.updateKOtable(self._gamePhase)
+        # self.fillQFtable()
         # Create Semi Final table
         if self.groupNumber >= 2:
             tableGeometry = 500
@@ -312,7 +391,6 @@ class KOWindow(QtWidgets.QWidget):
             tableGeometry = self._createTableKO(tableGeometry, distanceToSF, tableHeigh, "final")
 
         self._userInput()
-
     
 
 class GroupStageWindow(QtWidgets.QMainWindow):
@@ -491,7 +569,8 @@ class GroupStageWindow(QtWidgets.QMainWindow):
         self.resultGroup.clicked.connect(self.inputResultbutton)
         self.resultGroup = QtWidgets.QPushButton('start Viertel Finale', self)
         self.resultGroup.setGeometry(530, 872, 150, 23)
-        self.resultGroup.clicked.connect(self._startQFbutton)
+        self.resultGroup.clicked.connect(self._startKOstage)
+        # self.resultGroup.clicked.connect(self._startQFbutton)
         self.w = None
         self.resultGroup.clicked.connect(self.showNewWindow)
 
@@ -505,13 +584,13 @@ class GroupStageWindow(QtWidgets.QMainWindow):
         if self._gamePhase == "group_phase":
             numberOfGames = factorial(self.teamsPerGroup - 1)
             # only for tests!!!
-            # allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"] # should change variable 
-            # allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
-            # for idx, group in enumerate(allGroupNames):
-            #     for i in range(numberOfGames):
-            #         inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "10", "8")
+            allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"] # should change variable 
+            allGroupStages = catchGroupStage(self.groupNumber, "groupStage")
+            for idx, group in enumerate(allGroupNames):
+                for i in range(numberOfGames):
+                    inputGameResults(group, allGroupStages[idx][i][0], allGroupStages[idx][i][1], "10", "8")
 
-            inputGameResults(groupValue, teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
+            # inputGameResults(groupValue, teamXnameValue, teamYnameValue, team1ResultValue, team2ResultValue)
             self.updateTeamInfoTables()
 
         self.teamXname.setText("")
@@ -519,14 +598,23 @@ class GroupStageWindow(QtWidgets.QMainWindow):
         self.teamXresult.setText("")
         self.teamYresult.setText("")
 
-    def _startQFbutton(self):
-        self.fillQFtable()
+    def _startKOstage(self):
+        # self._fillKOtable()
+        self.resultGroup.hide()
+        self.group.hide()
+        # nicer user interface
+        self.groupLable.hide()
+        # start new Window for KO stage
+        self.w = None
+        self.showNewWindow()
+    
+    def _startQFbutton(self): # TODO not needed
         # to avoid table overflowing
         self.resultGroup.hide()
         self.group.hide()
         # nicer user interface
         self.groupLable.hide()
-        self._gamePhase = "quater_finals"
+        # self._gamePhase = "quater_finals"
         # in the case of a program crash
         self.updateKOtable("quater_finals") 
 

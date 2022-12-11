@@ -17,6 +17,12 @@ def createGroups():
                                                                          result_for_team1 INTEGER,\
                                                                          result_for_team2 INTEGER   )")
         # TODO Create Table only when needed
+        cur.execute("CREATE TABLE IF NOT EXISTS eight_finals            (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER,\
+                                                                         winner TEXT)")
+
         cur.execute("CREATE TABLE IF NOT EXISTS quater_finals           (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
