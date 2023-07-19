@@ -128,16 +128,19 @@ def inputGameResults(group, teamX, teamY, cupsX, cupsY):
     cur, conn = _openDB()
     
     cur.execute("SELECT result_for_team1, result_for_team2 FROM " + group + "_group_stage WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    x = cur.fetchall()
-    for i in range(len(x)):
-        if x[0][i] != 0:
-            return "Match hat bereits ein Ergebniss!"
+    oldResult = cur.fetchall()
 
-    cur.execute("UPDATE " + group + "_group_stage SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    cur.execute("UPDATE " + group + "_group_stage SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    _incPoints(group, teamX, int(cupsX), teamY, int(cupsY), cur)
-    _incCups(group, teamX, cupsX, teamY, cupsY, cur)
-    _calcRank(group, cur)
+    # delete old result if existing
+      # oldResult TeamX        oldResult TeamY
+    if oldResult[0][0] != 0 or oldResult[0][1]:            
+        deleteInputDB(group, teamX, teamY, oldResult[0][0], oldResult[0][1])
+
+    if int(cupsX) + int(cupsY) != 0:
+        cur.execute("UPDATE " + group + "_group_stage SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+        cur.execute("UPDATE " + group + "_group_stage SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+        _incPoints(group, teamX, int(cupsX), teamY, int(cupsY), cur)
+        _incCups(group, teamX, cupsX, teamY, cupsY, cur)
+        _calcRank(group, cur)
 
     _closeDB(conn)
 

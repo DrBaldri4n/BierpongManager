@@ -114,8 +114,8 @@ def main():
                 ('Team4', 0, 0, 1),
                 ]
     allTeamsGroupB = [
-                ('Auffallen durch Umfallen', 0, 0, 1),
-                ('Scheissdanixdannfahltdanix', 0, 0, 1),
+                ('Winner 2', 0, 0, 1),
+                ('Scheis Name', 0, 0, 1),
                 ('Team8', 0, 0, 1),
                 ('Team9', 0, 0, 1),
                 ]
