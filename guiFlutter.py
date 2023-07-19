@@ -166,7 +166,7 @@ def mainPage(page):
         for num in range(8 - len(dynamicRankTable)):
             dynamicRankTable[len(dynamicRankTable)] = ft.DataTable(width=420)
             dynamicGroupstageTable[len(dynamicGroupstageTable)] = ft.DataTable(width=420)
-
+    #test
     text = ft.Text(
             text_align=ft.TextAlign.RIGHT,
             value=f"BEERPONG",
