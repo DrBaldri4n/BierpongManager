@@ -2,6 +2,7 @@ from math import factorial
 import flet as ft
 from updateGame import catchGroupStage, inputGameResults, deleteInputDB
 # lets try this with flutter!!
+# Test
 
 class RankTable:
     def createRank():
