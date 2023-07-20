@@ -1,5 +1,5 @@
 import sqlite3
-import random
+import random #test
 
 
 def createGroups():
@@ -7,7 +7,7 @@ def createGroups():
     groupNumbers = input("wie viel Gruppen soll es geben?(zwischen 2 und 8 und nur gerade): ")
     #TODO error meldung einbauen, wenn gruppenzahl falsch eingegeben
     groupNumbers = int(groupNumbers)
-    for i in range(groupNumbers):                                          # TODO team_nameX, team_nameY
+    for i in range(groupNumbers):                                       # TODO team_nameX, team_nameY
         cur.execute("CREATE TABLE IF NOT EXISTS " + allGroupNames[i] +   " (team_name TEXT PRIMARY KEY,\
                                                                             cups INTEGER,\
                                                                             points INTEGER,\
@@ -17,6 +17,12 @@ def createGroups():
                                                                          result_for_team1 INTEGER,\
                                                                          result_for_team2 INTEGER   )")
         # TODO Create Table only when needed
+        cur.execute("CREATE TABLE IF NOT EXISTS eight_finals            (team_name1 TEXT,\
+                                                                         team_name2 TEXT,\
+                                                                         result_for_team1 INTEGER,\
+                                                                         result_for_team2 INTEGER,\
+                                                                         winner TEXT)")
+
         cur.execute("CREATE TABLE IF NOT EXISTS quater_finals           (team_name1 TEXT,\
                                                                          team_name2 TEXT,\
                                                                          result_for_team1 INTEGER,\
@@ -43,14 +49,22 @@ def createGroupStage(allGroupNames, groupNumbers):
         groupSize = cur.fetchall()
         groupSize = groupSize[0][0]
 
-        cupsX = 0
-        cupsY = 0
+        groupStage = []
         print(allGroupNames[indexGroup])
         for j in range(groupSize - 1):
             for i in range(j + 1, groupSize):
-                print(groupX[j][0], " vs ", groupX[i][0])
-                cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupX[j][0] + "', '" + groupX[i][0] + "', 0, 0)")
+                groupStage.append([groupX[j][0], groupX[i][0]])
+        pos = 0
 
+        for _ in range(len(groupStage)):
+            print(groupStage[pos][0] + " vs " + groupStage[pos][1])
+            cur.execute("INSERT INTO " + allGroupNames[indexGroup] + "_group_stage VALUES ('" + groupStage[pos][0] + "', '" + groupStage[pos][1] + "', 0, 0)")
+            groupStage.pop(pos)
+            # TODO smarter solution??
+            if pos == 0:
+                pos -= 1
+            else: 
+                pos += 1
 
 def addNewTeam(allTeamNames):
     teamName = input("Teamname = ")
@@ -94,14 +108,14 @@ def main():
 
     #only for tests!!!!
     allTeamsGroupA = [
-                ('Team1', 0, 0, 1),
+                ('SpVgg Warnweste', 0, 0, 1),
                 ('Team2', 0, 0, 1),
                 ('Team3', 0, 0, 1),
                 ('Team4', 0, 0, 1),
                 ]
     allTeamsGroupB = [
-                ('Team6', 0, 0, 1),
-                ('Team7', 0, 0, 1),
+                ('Winner 2', 0, 0, 1),
+                ('Scheis Name', 0, 0, 1),
                 ('Team8', 0, 0, 1),
                 ('Team9', 0, 0, 1),
                 ]
@@ -117,10 +131,39 @@ def main():
                 ('Team18', 0, 0, 1),
                 ('Team19', 0, 0, 1),
                 ]
+    allTeamsGroupE = [
+                ('Team21', 0, 0, 1),
+                ('Team22', 0, 0, 1),
+                ('Team23', 0, 0, 1),
+                ('Team24', 0, 0, 1),
+                ]
+    allTeamsGroupF = [
+                ('Team26', 0, 0, 1),
+                ('Team27', 0, 0, 1),
+                ('Team28', 0, 0, 1),
+                ('Team29', 0, 0, 1),
+                ]
+    allTeamsGroupG = [
+                ('Team31', 0, 0, 1),
+                ('Team32', 0, 0, 1),
+                ('Team33', 0, 0, 1),
+                ('Team34', 0, 0, 1),
+                ]
+    allTeamsGroupH = [
+                ('Team36', 0, 0, 1),
+                ('Team37', 0, 0, 1),
+                ('Team38', 0, 0, 1),
+                ('Team39', 0, 0, 1),
+                ]
+
     cur.executemany("INSERT INTO groupA VALUES (?,?,?,?)", allTeamsGroupA)
     cur.executemany("INSERT INTO groupB VALUES (?,?,?,?)", allTeamsGroupB)
     cur.executemany("INSERT INTO groupC VALUES (?,?,?,?)", allTeamsGroupC)
     cur.executemany("INSERT INTO groupD VALUES (?,?,?,?)", allTeamsGroupD)
+    cur.executemany("INSERT INTO groupE VALUES (?,?,?,?)", allTeamsGroupE)
+    cur.executemany("INSERT INTO groupF VALUES (?,?,?,?)", allTeamsGroupF)
+    cur.executemany("INSERT INTO groupG VALUES (?,?,?,?)", allTeamsGroupG)
+    cur.executemany("INSERT INTO groupH VALUES (?,?,?,?)", allTeamsGroupH)
 
     createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)

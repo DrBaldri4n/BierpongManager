@@ -5,10 +5,15 @@ def _incCups(group, teamX, cupsX, teamY, cupsY, cur):
     cur.execute("UPDATE " + group + " SET cups = cups + (?) WHERE team_name = (?)", (cupsY, teamY))
 
 def _incPoints(group, teamX, cupsX, teamY, cupsY, cur):
+    points = 3
     if cupsX > cupsY:
-        cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (3, teamX))
+        if cupsX < 10:
+            points = 2
+        cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (points, teamX))
     elif cupsX < cupsY:
-        cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (3, teamY))
+        if cupsY < 10:
+            points = 2
+        cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (points, teamY))
     else:
         cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (1, teamX))
         cur.execute("UPDATE " + group + " SET points = points + (?) WHERE team_name = (?)", (1, teamY))
@@ -44,13 +49,22 @@ def _calcGroupWinner(teamInfo):
 
     return groupWinnerFirst, groupWinnerSecond
 
-def addQF(teamX, teamY, cupsX, cupsY):
+def addEight(teamX, teamY, cupsX, cupsY, xFinalTable):
     cur, conn = _openDB()
-    cur.execute("SELECT COUNT(*) FROM quater_finals")
+    cur.execute("SELECT COUNT(*) FROM " + xFinalTable)
+    teamNumber = cur.fetchall()
+    # TODO Error Handling
+    if int(teamNumber[0][0]) < 8:
+        cur.execute("INSERT INTO " + xFinalTable + " (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
+    _closeDB(conn)
+
+def addQF(teamX, teamY, cupsX, cupsY, xFinalTable):
+    cur, conn = _openDB()
+    cur.execute("SELECT COUNT(*) FROM " + xFinalTable)
     teamNumber = cur.fetchall()
     # TODO Error Handling
     if int(teamNumber[0][0]) < 4:
-        cur.execute("INSERT INTO quater_finals (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
+        cur.execute("INSERT INTO " + xFinalTable + " (team_name1, team_name2, result_for_team1, result_for_team2, winner) VALUES (?,?,?,?,'x')", (teamX, teamY, cupsX, cupsY))
     _closeDB(conn)
 
 def addSF(teamX, teamY, cupsX, cupsY, xFinalTable):
@@ -110,21 +124,61 @@ def catchWinner(xFinalsTable):
     _closeDB(conn)
     return winner
 
-def _printGroupStage(groupNumber, allGroupNames):
-    for i in range(groupNumber):
-        cur.execute("SELECT * FROM " + allGroupNames[i] + "_group_stage")
-        print(allGroupNames[i], cur.fetchall())
-
 def inputGameResults(group, teamX, teamY, cupsX, cupsY):
     cur, conn = _openDB()
+    
+    cur.execute("SELECT result_for_team1, result_for_team2 FROM " + group + "_group_stage WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+    oldResult = cur.fetchall()
 
-    cur.execute("UPDATE " + group + "_group_stage SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    cur.execute("UPDATE " + group + "_group_stage SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    _incPoints(group, teamX, int(cupsX), teamY, int(cupsY), cur)
-    _incCups(group, teamX, cupsX, teamY, cupsY, cur)
-    _calcRank(group, cur)
+    # delete old result if existing
+      # oldResult TeamX        oldResult TeamY
+    if oldResult[0][0] != 0 or oldResult[0][1]:            
+        deleteInputDB(group, teamX, teamY, oldResult[0][0], oldResult[0][1])
+
+    if int(cupsX) + int(cupsY) != 0:
+        cur.execute("UPDATE " + group + "_group_stage SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+        cur.execute("UPDATE " + group + "_group_stage SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+        _incPoints(group, teamX, int(cupsX), teamY, int(cupsY), cur)
+        _incCups(group, teamX, cupsX, teamY, cupsY, cur)
+        _calcRank(group, cur)
 
     _closeDB(conn)
+
+def deleteInputDB(groupValue, teamXname, teamYname, teamXResult, teamYResult):
+    cur, conn = _openDB()
+    points = -3
+
+    # set cups = 0 in GroupStage
+    cur.execute("UPDATE " + groupValue + "_group_stage SET result_for_team1 = 0 WHERE team_name1 = '" + teamXname + "' AND team_name2 = '" + teamYname + "'")
+    cur.execute("UPDATE " + groupValue + "_group_stage SET result_for_team2 = 0 WHERE team_name1 = '" + teamXname + "' AND team_name2 = '" + teamYname + "'")
+    if int(teamXResult) ==  int(teamYResult):
+        # set cups = 0 in TeamInfo Table
+        _incCups(groupValue, teamXname, str(int(teamXResult) * (-1)), teamYname, str(int(teamYResult) * (-1)), cur)
+        # set points = 0 in TeamInfo Table
+        cur.execute("UPDATE " + groupValue + " SET points = points + (?) WHERE team_name = (?)", (-1, teamXname))
+        cur.execute("UPDATE " + groupValue + " SET points = points + (?) WHERE team_name = (?)", (-1, teamYname))
+        _closeDB(conn)
+        return
+    winner = teamXname
+    if int(teamXResult) < int(teamYResult):
+        if int(teamYResult) < 10:
+            points = -2
+        # filter winner in this game
+        winner = teamYname
+        # set Cups AND Points = 0 from the winner in TeamInfo Table
+        _incCups(groupValue, teamXname, str(int(teamXResult) * (-1)), teamYname, str(int(teamYResult) * (-1)), cur)
+        cur.execute("UPDATE " + groupValue + " SET points = points + (?) WHERE team_name = (?)", (points, winner))
+        _closeDB(conn)
+        return
+
+    # set Cups AND Points = 0 from the winner in TeamInfo Table
+    if int(teamXResult) < 10:
+        points = -2
+    _incCups(groupValue, teamXname, str(int(teamXResult) * (-1)), teamYname, str(int(teamYResult) * (-1)), cur)
+    cur.execute("UPDATE " + groupValue + " SET points = points + (?) WHERE team_name = (?)", (points, teamXname))
+
+    _closeDB(conn)
+    return
 
 def _closeDB(conn):
     conn.commit()
