@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3 as sql
 
 def _incCups(group, teamX, cupsX, teamY, cupsY, cur):
     cur.execute("UPDATE " + group + " SET cups = cups + (?) WHERE team_name = (?)", (cupsX, teamX))
@@ -129,7 +129,6 @@ def inputGameResults(group, teamX, teamY, cupsX, cupsY):
     
     cur.execute("SELECT result_for_team1, result_for_team2 FROM " + group + "_group_stage WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
     oldResult = cur.fetchall()
-
     # delete old result if existing
       # oldResult TeamX        oldResult TeamY
     if oldResult[0][0] != 0 or oldResult[0][1]:            
@@ -185,6 +184,6 @@ def _closeDB(conn):
     conn.close()
 
 def _openDB():
-    conn = sqlite3.connect('beerpong.db')
+    conn = sql.connect('beerpong.db')
     cur = conn.cursor()
     return cur, conn
