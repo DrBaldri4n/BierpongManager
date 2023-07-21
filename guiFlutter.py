@@ -63,10 +63,10 @@ class GroupstageTable:
             for groupName in range(gamesPerGroup):
                 GroupstageTable._updateResult(dynamicGroupstageTable[num],num, groupName, page, dynamicRankTable[num], nmbOfGroups, "groupStage")
 
-        if nmbOfGroups < 8:
-            for num in range(8 - len(dynamicRankTable)):
-                dynamicRankTable[len(dynamicRankTable)] = ft.DataTable(width=420)
-                dynamicGroupstageTable[len(dynamicGroupstageTable)] = ft.DataTable(width=420)
+        # if nmbOfGroups < 8:
+        #     for num in range(8 - len(dynamicRankTable)):
+        #         dynamicRankTable[len(dynamicRankTable)] = ft.DataTable(width=420)
+        #         dynamicGroupstageTable[len(dynamicGroupstageTable)] = ft.DataTable(width=420)
 
         return dynamicRankTable, dynamicGroupstageTable
 
@@ -202,9 +202,70 @@ class DlgWindow:
                 dlgWindow.open = False
             page.update()
 
+class GUItable:
+    def guiTables(dynamicRankTable, dynamicGroupstageTable, koTable):
+        sortRankTableGUI = {}
+        sortGroupStageTableGUI = {}
+        sortKOtableGUI = {}
+        if len(dynamicRankTable) == 2:
+            sortRankTableGUI[0] = ft.DataTable(width=420)
+            sortGroupStageTableGUI[0] = ft.DataTable(width=420)
+            sortKOtableGUI[0] = ft.DataTable(width=210)
+            sortKOtableGUI[1] = ft.DataTable(width=420)
+            sortKOtableGUI[2] = koTable[0]
+            for num in range(2):
+                sortRankTableGUI[num + 1] = dynamicRankTable[num]
+                sortGroupStageTableGUI[num + 1] = dynamicGroupstageTable[num]
+
+        elif len(dynamicRankTable) == 4:
+            i = 0
+            widthe = 210
+            for num in range(4):
+                if num % 2 == 0:
+                    sortKOtableGUI[num] = ft.DataTable(width=widthe)
+                    widthe *= 2
+                else:
+                    sortKOtableGUI[num] = koTable[i] 
+                    i += 1
+
+            for num in range(len(dynamicRankTable)):
+                sortRankTableGUI[num] = dynamicRankTable[num]
+                sortGroupStageTableGUI[num] = dynamicGroupstageTable[num]
+
+        elif len(dynamicRankTable) == 6:
+            sortKOtableGUI[0] = ft.DataTable(width=210)
+            for num in range(0, 4):
+                sortRankTableGUI[num] = dynamicRankTable[num]
+                sortGroupStageTableGUI[num] = dynamicGroupstageTable[num]
+                sortKOtableGUI[num + 1] = koTable[num]
+            sortRankTableGUI[4] = ft.DataTable(width=420)
+            sortGroupStageTableGUI[4] = ft.DataTable(width=420)
+            for num in range(5, 7):
+                sortRankTableGUI[num] = dynamicRankTable[num - 1]
+                sortGroupStageTableGUI[num] = dynamicGroupstageTable[num - 1]
+                sortKOtableGUI[num] = ft.DataTable()
+        else:
+            sortRankTableGUI = dynamicRankTable
+            sortGroupStageTableGUI = dynamicGroupstageTable
+            sortKOtableGUI[0] = ft.DataTable(width=210)
+            sortKOtableGUI[1] = koTable[0]
+            sortKOtableGUI[2] = ft.DataTable(width=420)
+            sortKOtableGUI[3] = koTable[1]
+            sortKOtableGUI[4] = ft.DataTable(width=210)
+            sortKOtableGUI[5] = koTable[2]
+            sortKOtableGUI[6] = ft.DataTable(width=420)
+            sortKOtableGUI[7] = koTable[3]
+
+        for num in range(8 - len(dynamicRankTable)):
+            sortRankTableGUI[len(sortRankTableGUI)] = ft.DataTable(width=420)
+            sortGroupStageTableGUI[len(sortGroupStageTableGUI)] = ft.DataTable(width=420)
+            sortKOtableGUI[len(sortKOtableGUI)] = ft.DataTable(width=420)
+
+        return sortRankTableGUI, sortGroupStageTableGUI, sortKOtableGUI
+
 def mainPage(page):
     
-    nmbOfGroups = 4 #TODO user setting
+    nmbOfGroups = 6 #TODO user setting
     teamsPerGroup = 4
     
     # Creating Group Tables
@@ -218,6 +279,8 @@ def mainPage(page):
     if int(nmbOfGroups/2) < 4:
         for num in range(4 - int(nmbOfGroups/2)):
             koTable[len(koTable)] = ft.DataTable(width=420)
+
+    sortRankTableGUI, sortGroupStageTableGUI, sortKOtableGUI = GUItable.guiTables(dynamicRankTable, dynamicGroupstageTable, koTable)
 
     # put it in the GUI
     header = ft.Text(
@@ -234,27 +297,29 @@ def mainPage(page):
                     color=ft.colors.BLACK,
                     width=1700,
                 )
-    
+
     allTables = ft.Column(
             [
             ft.Row([
                 header
             ]),
             ft.Row([
-                dynamicRankTable[2], dynamicRankTable[0], dynamicRankTable[1], dynamicRankTable[3],
+                sortRankTableGUI[0], sortRankTableGUI[1], sortRankTableGUI[2], sortRankTableGUI[3],
                     ]),
             ft.Row([
-                dynamicRankTable[6], dynamicRankTable[4], dynamicRankTable[5], dynamicRankTable[7],
+                sortRankTableGUI[4], sortRankTableGUI[5], sortRankTableGUI[6], sortRankTableGUI[7],
                     ]),
             ft.Row([
-
-                dynamicGroupstageTable[2], dynamicGroupstageTable[0], dynamicGroupstageTable[1], dynamicGroupstageTable[3],
+                sortGroupStageTableGUI[0], sortGroupStageTableGUI[1], sortGroupStageTableGUI[2], sortGroupStageTableGUI[3],
             ]),
             ft.Row([
-                dynamicGroupstageTable[6], dynamicGroupstageTable[4], dynamicGroupstageTable[5], dynamicGroupstageTable[7],
+                sortGroupStageTableGUI[4], sortGroupStageTableGUI[5], sortGroupStageTableGUI[6], sortGroupStageTableGUI[7],
             ]),
             ft.Row([
-                koTable[2], koTable[0], koTable[1], koTable[3],     
+                sortKOtableGUI[0], sortKOtableGUI[1], sortKOtableGUI[2], sortKOtableGUI[3],     
+            ]),
+            ft.Row([
+                sortKOtableGUI[4], sortKOtableGUI[5], sortKOtableGUI[6], sortKOtableGUI[7],    
             ]),
             ft.Row([
                 credits
@@ -277,6 +342,4 @@ if __name__ == "__main__":
     page = ft.Page
     mainPage(page)
     
-
-    #TODO keine 8 mehr übergeben sonder anzahl der gruppen
     #TODO Achtelfinale einfügen
