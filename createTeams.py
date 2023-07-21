@@ -109,27 +109,27 @@ def main():
     #only for tests!!!!
     allTeamsGroupA = [
                 ('SpVgg Warnweste', 0, 0, 1),
-                ('Team2', 0, 0, 1),
-                ('Team3', 0, 0, 1),
-                ('Team4', 0, 0, 1),
+                ('Team2', 0, 0, 2),
+                ('Team3', 0, 0, 3),
+                ('Team4', 0, 0, 4),
                 ]
     allTeamsGroupB = [
                 ('Winner 2', 0, 0, 1),
-                ('Scheis Name', 0, 0, 1),
-                ('Team8', 0, 0, 1),
-                ('Team9', 0, 0, 1),
+                ('Scheis Name', 0, 0, 2),
+                ('Team8', 0, 0, 3),
+                ('Team9', 0, 0, 4),
                 ]
     allTeamsGroupC = [
                 ('Team11', 0, 0, 1),
-                ('Team12', 0, 0, 1),
-                ('Team13', 0, 0, 1),
-                ('Team14', 0, 0, 1),
+                ('Team12', 0, 0, 2),
+                ('Team13', 0, 0, 3),
+                ('Team14', 0, 0, 4),
                 ]
     allTeamsGroupD = [
                 ('Team16', 0, 0, 1),
-                ('Team17', 0, 0, 1),
-                ('Team18', 0, 0, 1),
-                ('Team19', 0, 0, 1),
+                ('Team17', 0, 0, 2),
+                ('Team18', 0, 0, 3),
+                ('Team19', 0, 0, 4),
                 ]
     allTeamsGroupE = [
                 ('Team21', 0, 0, 1),
@@ -160,10 +160,10 @@ def main():
     cur.executemany("INSERT INTO groupB VALUES (?,?,?,?)", allTeamsGroupB)
     cur.executemany("INSERT INTO groupC VALUES (?,?,?,?)", allTeamsGroupC)
     cur.executemany("INSERT INTO groupD VALUES (?,?,?,?)", allTeamsGroupD)
-    cur.executemany("INSERT INTO groupE VALUES (?,?,?,?)", allTeamsGroupE)
-    cur.executemany("INSERT INTO groupF VALUES (?,?,?,?)", allTeamsGroupF)
-    cur.executemany("INSERT INTO groupG VALUES (?,?,?,?)", allTeamsGroupG)
-    cur.executemany("INSERT INTO groupH VALUES (?,?,?,?)", allTeamsGroupH)
+    # cur.executemany("INSERT INTO groupE VALUES (?,?,?,?)", allTeamsGroupE)
+    # cur.executemany("INSERT INTO groupF VALUES (?,?,?,?)", allTeamsGroupF)
+    # cur.executemany("INSERT INTO groupG VALUES (?,?,?,?)", allTeamsGroupG)
+    # cur.executemany("INSERT INTO groupH VALUES (?,?,?,?)", allTeamsGroupH)
 
     createGroupStage(allGroupNames, groupNumbers)
     spiltTeams(allTeamNames, groupNumbers, allGroupNames)
