@@ -63,14 +63,7 @@ class GroupstageTable:
             for groupName in range(gamesPerGroup):
                 GroupstageTable._updateResult(dynamicGroupstageTable[num],num, groupName, page, dynamicRankTable[num], nmbOfGroups, "groupStage")
 
-        # if nmbOfGroups < 8:
-        #     for num in range(8 - len(dynamicRankTable)):
-        #         dynamicRankTable[len(dynamicRankTable)] = ft.DataTable(width=420)
-        #         dynamicGroupstageTable[len(dynamicGroupstageTable)] = ft.DataTable(width=420)
-
         return dynamicRankTable, dynamicGroupstageTable
-
-
 
     def _createResult():
             table = ft.DataTable(
@@ -203,6 +196,13 @@ class DlgWindow:
             page.update()
 
 class GUItable:
+    ''' TODO
+    - how many KO tables do I need?
+    - fill all KO tables
+    - update all KO tables with every result change in the group stage
+    - update the right database table with the result input AND update*
+    - *update all KO tables with every result change in the KO stage
+    '''
     def guiTables(dynamicRankTable, dynamicGroupstageTable, koTable):
         sortRankTableGUI = {}
         sortGroupStageTableGUI = {}
@@ -265,7 +265,7 @@ class GUItable:
 
 def mainPage(page):
     
-    nmbOfGroups = 6 #TODO user setting
+    nmbOfGroups = 8 #TODO user setting
     teamsPerGroup = 4
     
     # Creating Group Tables
