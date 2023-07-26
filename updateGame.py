@@ -85,10 +85,20 @@ def addFinals(teamX, teamY, cupsX, cupsY, xFinalTable):
         cur.execute("INSERT INTO " + xFinalTable + " (team_name1, team_name2, result_for_team1, result_for_team2) VALUES (?,?,?,?)", (teamX, teamY, cupsX, cupsY))
     _closeDB(conn)
 
-def updateKOtabelDB(teamX, teamY, cupsX, cupsY, xFinalsTable):
+def updateKOtabelDB(teamX, teamY, cupsX, cupsY, xFinalsTable, idx):
     cur, conn = _openDB()
-    cur.execute("UPDATE " + xFinalsTable + " SET result_for_team1 = " + cupsX + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
-    cur.execute("UPDATE " + xFinalsTable + " SET result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+    cur.execute("SELECT * FROM " + xFinalsTable)
+    oldData = cur.fetchall()
+    cur.execute("UPDATE '" + xFinalsTable + "' SET team_name1 = '" + teamX + "', team_name2 = '" + teamY + "' WHERE team_name1 = '" + oldData[idx][0] + "' AND team_name2 = '" + oldData[idx][1] + "'")
+    cur.execute("UPDATE " + xFinalsTable + " SET result_for_team1 = " + cupsX + ", result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
+    cur.execute("SELECT * FROM " + xFinalsTable)
+    newData = cur.fetchall()
+    _closeDB(conn)
+
+def updateGameResult(teamX, teamY, cupsX, cupsY, xFinalsTable):
+    cur, conn = _openDB()
+    cur.execute("SELECT * FROM " + xFinalsTable)
+    cur.execute("UPDATE " + xFinalsTable + " SET result_for_team1 = " + cupsX + ", result_for_team2 = " + cupsY + " WHERE team_name1 = '" + teamX + "' AND team_name2 = '" + teamY + "'")
     _closeDB(conn)
 
 def catchGroupStage(groupNumber, infoORstage):
@@ -113,9 +123,10 @@ def catchGroupStage(groupNumber, infoORstage):
 def catchQF(xFinalsTable):
     cur, conn = _openDB()
     cur.execute("SELECT * FROM " + xFinalsTable)
-    quaterFinalsTable = cur.fetchall()
+    x = cur.fetchall()
     _closeDB(conn)
-    return quaterFinalsTable
+    return x
+
 
 def catchWinner(xFinalsTable):
     cur, conn = _openDB()
