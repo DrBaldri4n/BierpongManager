@@ -1,7 +1,6 @@
 from math import factorial
 import flet as ft
-from updateGame import catchGroupStage, inputGameResults, addEight, addSF, addFinals, catchQF, updateKOtabelDB, updateGameResult, catchWinner
-# lets try this with flutter!!
+from updateGame import Databank
 
 class RankTable:
     def createRank():
@@ -27,7 +26,8 @@ class RankTable:
         return table
     
     def updateRankRuntime(myTable, groupName, teamsperGroup, nmbOfGroups):
-        teamInfo, _, _ = catchGroupStage(nmbOfGroups, "teamInfo")
+        db = Databank()
+        teamInfo, _, _ = db.catchGroupStage(nmbOfGroups, "teamInfo")
 
         for teamName in range(teamsperGroup):                                                #[0] = TeamName
             myTable.rows[teamName].cells[1].content.value = teamInfo[groupName][teamName][1] # cups
@@ -36,7 +36,8 @@ class RankTable:
         
         
     def updateRank(myTable, groupName, teamName, nmbOfGroups):
-        teamInfo, _, _ = catchGroupStage(nmbOfGroups, "teamInfo")
+        db = Databank()
+        teamInfo, _, _ = db.catchGroupStage(nmbOfGroups, "teamInfo")
 
         myTable.rows.append(
             ft.DataRow(
@@ -86,7 +87,8 @@ class GroupstageTable:
             return table
 
     def _updateResult(myTable, groupName, teamName, page, rankTable, nmbOfGroups, koTable, xFinal):
-        groupGames = catchGroupStage(nmbOfGroups, "groupStage")
+        db = Databank()
+        groupGames = db.catchGroupStage(nmbOfGroups, "groupStage")
         myTable.rows.append(
             ft.DataRow(
                 cells=[
@@ -101,8 +103,9 @@ class GroupstageTable:
 
 class SemiFinal:
     def updateSemiRuntime(semiFinalTable):
-        _, groupWinnerFirst, groupWinnerSecond = catchGroupStage(2, "teamInfo")
-        semiFinalData = catchQF("semi_finals")
+        db = Databank()
+        _, groupWinnerFirst, groupWinnerSecond = db.catchGroupStage(2, "teamInfo")
+        semiFinalData = db.catchQF("semi_finals")
 
         rank1VSrank2 = 1
         for idx in range(2):
@@ -111,7 +114,7 @@ class SemiFinal:
             semiFinalTable.rows[idx].cells[2].content.value = 0 
             semiFinalTable.rows[idx].cells[3].content.value = 0
 
-            updateKOtabelDB(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], "0", "0", "semi_finals", idx)
+            db.updateKOtabelDB(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], "0", "0", "semi_finals", idx)
 
             groupWinnerFirst.pop(0)
             if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
@@ -122,8 +125,9 @@ class SemiFinal:
                 rank1VSrank2 = 1
 
     def updateSemi(semiFinalTable, nmbOfGroups, koTable, xFinal, page):
-        _, groupWinnerFirst, groupWinnerSecond = catchGroupStage(2, "teamInfo")
-        semiFinalData = catchQF("semi_finals")
+        db = Databank()
+        _, groupWinnerFirst, groupWinnerSecond = db.catchGroupStage(2, "teamInfo")
+        semiFinalData = db.catchQF("semi_finals")
         if len(semiFinalData) > 0: # if there is already data in the semi Final Table
             for idx in range(len(semiFinalData)):
                 semiFinalTable.rows.append(
@@ -155,9 +159,7 @@ class SemiFinal:
                         on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, koTable, xFinal))
                     )
                 )
-                addSF(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0, 0, xFinal),
-                # x = catchQF("semi_finals")
-
+                db.addSF(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0, 0, xFinal),
                 groupWinnerFirst.pop(0)
                 if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
                     groupWinnerSecond.pop(1)
@@ -168,20 +170,21 @@ class SemiFinal:
 
 class Final:
     def updateFinal(finalTable, semiFinalTable, nmbOfGroups, koTable, xFinal, page):
-        winners = catchWinner("semi_finals")
+        db = Databank()
+        winners = db.catchWinner("semi_finals")
         #filter the winner form the semi Finals
         finalTable.rows.append(
             ft.DataRow(
                 cells=[
-                    ft.DataCell(ft.Text(winners[0][0])),
-                    ft.DataCell(ft.Text(winners[0][1])),
+                    ft.DataCell(ft.Text("winners[0][0]")),
+                    ft.DataCell(ft.Text("winners[0][1]")),
                     ft.DataCell(ft.Text("0")),
                     ft.DataCell(ft.Text("0")),
                 ],
                 on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, koTable, xFinal))
             )
         )
-        addFinals(winners[0][0], winners[0][1], 0, 0, xFinal)
+        # addFinals(winners[0][0], winners[0][1], 0, 0, xFinal)
 
 class KOstage:
     def createKOtable():
@@ -207,6 +210,7 @@ class KOstage:
 
 class DlgWindow:
     def editDatabase(e, groupName, rankTable, koTable, nmbOfGroups, xFinal):
+        db = Databank()
         allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"]
 
         teamX = e.control.cells[0].content.value
@@ -216,12 +220,12 @@ class DlgWindow:
         # get the SF table 
         teamsperGroup = 4
         if xFinal == "eight_finals":
-            addEight(teamX, teamY, cupsX, cupsY, xFinal)
+            db.addEight(teamX, teamY, cupsX, cupsY, xFinal)
         if xFinal == "semi_finals":
-            updateGameResult(teamX, teamY, cupsX, cupsY, xFinal)
-            x = catchQF("semi_finals")
+            db.updateGameResult(teamX, teamY, cupsX, cupsY, xFinal)
+            x = db.catchQF("semi_finals")
         else:
-            inputGameResults(allGroupNames[groupName], teamX, teamY, cupsX, cupsY)
+            db.inputGameResults(allGroupNames[groupName], teamX, teamY, cupsX, cupsY)
             RankTable.updateRankRuntime(rankTable, groupName, teamsperGroup, nmbOfGroups)
             if (len(koTable) > 0): #if != null
                 SemiFinal.updateSemiRuntime(koTable[0]) #semi Final Table
@@ -427,4 +431,4 @@ if __name__ == "__main__":
     page = ft.Page
     mainPage(page)
     
-    #TODO Achtelfinale einfügen
+    #TODO add finals
