@@ -1,7 +1,6 @@
 from math import factorial
 import flet as ft
-from updateGame import catchGroupStage, inputGameResults, addEight
-# lets try this with flutter!!
+from updateGame import Databank
 
 class RankTable:
     def createRank():
@@ -27,7 +26,8 @@ class RankTable:
         return table
     
     def updateRankRuntime(myTable, groupName, teamsperGroup, nmbOfGroups):
-        teamInfo, _, _ = catchGroupStage(nmbOfGroups, "teamInfo")
+        db = Databank()
+        teamInfo, _, _ = db.catchGroupStage(nmbOfGroups, "teamInfo")
 
         for teamName in range(teamsperGroup):                                                #[0] = TeamName
             myTable.rows[teamName].cells[1].content.value = teamInfo[groupName][teamName][1] # cups
@@ -36,7 +36,8 @@ class RankTable:
         
         
     def updateRank(myTable, groupName, teamName, nmbOfGroups):
-        teamInfo, _, _ = catchGroupStage(nmbOfGroups, "teamInfo")
+        db = Databank()
+        teamInfo, _, _ = db.catchGroupStage(nmbOfGroups, "teamInfo")
 
         myTable.rows.append(
             ft.DataRow(
@@ -50,7 +51,7 @@ class RankTable:
         )
     
 class GroupstageTable:
-    def groupTableMain(nmbOfGroups, teamsPerGroup, page):
+    def groupTableMain(nmbOfGroups, teamsPerGroup, koTable, page):
         gamesPerGroup = factorial(teamsPerGroup - 1)
         dynamicRankTable = {}
         dynamicGroupstageTable = {}
@@ -61,16 +62,9 @@ class GroupstageTable:
             for groupName in range(teamsPerGroup):
                 RankTable.updateRank(dynamicRankTable[num],num, groupName, nmbOfGroups)
             for groupName in range(gamesPerGroup):
-                GroupstageTable._updateResult(dynamicGroupstageTable[num],num, groupName, page, dynamicRankTable[num], nmbOfGroups, "groupStage")
-
-        # if nmbOfGroups < 8:
-        #     for num in range(8 - len(dynamicRankTable)):
-        #         dynamicRankTable[len(dynamicRankTable)] = ft.DataTable(width=420)
-        #         dynamicGroupstageTable[len(dynamicGroupstageTable)] = ft.DataTable(width=420)
+                GroupstageTable._updateResult(dynamicGroupstageTable[num],num, groupName, page, dynamicRankTable[num], nmbOfGroups, koTable, "groupStage")
 
         return dynamicRankTable, dynamicGroupstageTable
-
-
 
     def _createResult():
             table = ft.DataTable(
@@ -92,8 +86,9 @@ class GroupstageTable:
             )
             return table
 
-    def _updateResult(myTable, groupName, teamName, page, rankTable, nmbOfGroups, xFinal):
-        groupGames = catchGroupStage(nmbOfGroups, "groupStage")
+    def _updateResult(myTable, groupName, teamName, page, rankTable, nmbOfGroups, koTable, xFinal):
+        db = Databank()
+        groupGames = db.catchGroupStage(nmbOfGroups, "groupStage")
         myTable.rows.append(
             ft.DataRow(
                 cells=[
@@ -102,31 +97,24 @@ class GroupstageTable:
                     ft.DataCell(ft.Text(groupGames[groupName][teamName][2])), # cupsA
                     ft.DataCell(ft.Text(groupGames[groupName][teamName][3])), # cupsB
                 ],
-                on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, groupName, page, rankTable, nmbOfGroups, xFinal))
+                on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, groupName, page, rankTable, nmbOfGroups, koTable, xFinal))
             )
         )
 
-class KOstage:
-    def createKOtable():
-        return GroupstageTable._createResult()
-    
-    def updateKOtable(table, nmbOfGroups, xFinal, page):
-        _, groupWinnerFirst, groupWinnerSecond = catchGroupStage(2, "teamInfo")
+class SemiFinal:
+    def updateSemiRuntime(semiFinalTable):
+        db = Databank()
+        _, groupWinnerFirst, groupWinnerSecond = db.catchGroupStage(2, "teamInfo")
+        semiFinalData = db.catchQF("semi_finals")
+
         rank1VSrank2 = 1
-        for _ in range(len(groupWinnerFirst)):
-            table.rows.append(
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(groupWinnerFirst[0][0])),
-                        ft.DataCell(ft.Text(groupWinnerSecond[rank1VSrank2][0])),
-                        ft.DataCell(ft.Text("0")),
-                        ft.DataCell(ft.Text("0")),
-                    ],
-                    #fill in the right database
-                    on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, xFinal))
-                )
-            )
-            addEight(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0, 0, xFinal),
+        for idx in range(2):
+            semiFinalTable.rows[idx].cells[0].content.value = groupWinnerFirst[0][0]
+            semiFinalTable.rows[idx].cells[1].content.value = groupWinnerSecond[rank1VSrank2][0]
+            semiFinalTable.rows[idx].cells[2].content.value = 0 
+            semiFinalTable.rows[idx].cells[3].content.value = 0
+
+            db.updateKOtabelDB(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], "0", "0", "semi_finals", idx)
 
             groupWinnerFirst.pop(0)
             if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
@@ -136,25 +124,115 @@ class KOstage:
                 groupWinnerSecond.pop(0)
                 rank1VSrank2 = 1
 
+    def updateSemi(semiFinalTable, nmbOfGroups, koTable, xFinal, page):
+        db = Databank()
+        _, groupWinnerFirst, groupWinnerSecond = db.catchGroupStage(2, "teamInfo")
+        semiFinalData = db.catchQF("semi_finals")
+        if len(semiFinalData) > 0: # if there is already data in the semi Final Table
+            for idx in range(len(semiFinalData)):
+                semiFinalTable.rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(semiFinalData[idx][0])),
+                            ft.DataCell(ft.Text(semiFinalData[idx][1])),
+                            ft.DataCell(ft.Text(semiFinalData[idx][2])),
+                            ft.DataCell(ft.Text(semiFinalData[idx][3])),
+                        ],
+                        #fill in the right database
+                        on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, koTable, xFinal))
+                    )
+                )
+        else: # if there is not data in the semi final table
+            nmbOfGroups = 2
+            xFinal = "semi_finals"
+            rank1VSrank2 = 1
+            for _ in range(len(groupWinnerFirst)):
+                semiFinalTable.rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(groupWinnerFirst[0][0])),
+                            ft.DataCell(ft.Text(groupWinnerSecond[rank1VSrank2][0])),
+                            ft.DataCell(ft.Text("0")),
+                            ft.DataCell(ft.Text("0")),
+                        ],
+                        #fill in the right database
+                        on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, koTable, xFinal))
+                    )
+                )
+                db.addSF(groupWinnerFirst[0][0], groupWinnerSecond[rank1VSrank2][0], 0, 0, xFinal),
+                groupWinnerFirst.pop(0)
+                if (rank1VSrank2 == 1 or len(groupWinnerSecond) < 2) and len(groupWinnerSecond) > 1:
+                    groupWinnerSecond.pop(1)
+                    rank1VSrank2 = 0
+                elif rank1VSrank2 == 0:
+                    groupWinnerSecond.pop(0)
+                    rank1VSrank2 = 1
+
+class Final:
+    def updateFinal(finalTable, semiFinalTable, nmbOfGroups, koTable, xFinal, page):
+        db = Databank()
+        winners = db.catchWinner("semi_finals")
+        #filter the winner form the semi Finals
+        finalTable.rows.append(
+            ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text("winners[0][0]")),
+                    ft.DataCell(ft.Text("winners[0][1]")),
+                    ft.DataCell(ft.Text("0")),
+                    ft.DataCell(ft.Text("0")),
+                ],
+                on_select_changed=lambda e: (DlgWindow.generateDLGWindow(e, _, page, _, nmbOfGroups, koTable, xFinal))
+            )
+        )
+        # addFinals(winners[0][0], winners[0][1], 0, 0, xFinal)
+
+class KOstage:
+    def createKOtable():
+        return GroupstageTable._createResult()
+    
+    def individualTable(nmbOfGroups, page):
+        koTable = {}
+        if (nmbOfGroups == 2):
+            xFinal = "semi_finals"
+            semiFinalTable = KOstage.createKOtable()
+            finalTable = KOstage.createKOtable()
+
+            koTable[0] = semiFinalTable
+            koTable[10] = finalTable
+
+            SemiFinal.updateSemi(semiFinalTable, nmbOfGroups, koTable, xFinal, page)
+            Final.updateFinal(finalTable, semiFinalTable, nmbOfGroups, koTable, "finals", page)
+
+            print()
+
+        return koTable
+
 
 class DlgWindow:
-    def editDatabase(e, groupName, rankTable, nmbOfGroups, xFinal):
+    def editDatabase(e, groupName, rankTable, koTable, nmbOfGroups, xFinal):
+        db = Databank()
         allGroupNames = ["groupA", "groupB", "groupC", "groupD", "groupE", "groupF", "groupG", "groupH"]
 
         teamX = e.control.cells[0].content.value
         teamY = e.control.cells[1].content.value
         cupsX = str(e.control.cells[2].content.value)
         cupsY = str(e.control.cells[3].content.value)
-
+        # get the SF table 
         teamsperGroup = 4
         if xFinal == "eight_finals":
-            addEight(teamX, teamY, cupsX, cupsY, xFinal)
+            db.addEight(teamX, teamY, cupsX, cupsY, xFinal)
+        if xFinal == "semi_finals":
+            db.updateGameResult(teamX, teamY, cupsX, cupsY, xFinal)
+            x = db.catchQF("semi_finals")
         else:
-            inputGameResults(allGroupNames[groupName], teamX, teamY, cupsX, cupsY)
+            db.inputGameResults(allGroupNames[groupName], teamX, teamY, cupsX, cupsY)
             RankTable.updateRankRuntime(rankTable, groupName, teamsperGroup, nmbOfGroups)
+            if (len(koTable) > 0): #if != null
+                SemiFinal.updateSemiRuntime(koTable[0]) #semi Final Table
+
         print(teamX, " vs ",teamY, " = ", cupsX, ":", cupsY)
 
-    def generateDLGWindow(e, groupName, page, rankTable, nmbOfGroups, xFinal):
+    def generateDLGWindow(e, groupName, page, rankTable, nmbOfGroups, koTable, xFinal):
         teamA = e.control.cells[0].content.value
         teamB = e.control.cells[1].content.value
         dlgWindow = ft.AlertDialog(
@@ -167,7 +245,7 @@ class DlgWindow:
                     ]),
                     ft.Row([
                         ft.Dropdown(
-                            on_change=lambda v: editTable(v, 2, nmbOfGroups, xFinal), # cell for Cups TeamA #2
+                            on_change=lambda v: editTable(v, 2, nmbOfGroups, koTable, xFinal), # cell for Cups TeamA #2
                             options=[
                                 ft.dropdown.Option(0), ft.dropdown.Option(1), ft.dropdown.Option(2),
                                 ft.dropdown.Option(3), ft.dropdown.Option(4), ft.dropdown.Option(5),
@@ -177,7 +255,7 @@ class DlgWindow:
                             width=100,
                         ),
                         ft.Dropdown(
-                            on_change=lambda v: editTable(v, 3, nmbOfGroups, xFinal), # cell for Cups TeamA #3
+                            on_change=lambda v: editTable(v, 3, nmbOfGroups, koTable, xFinal), # cell for Cups TeamA #3
                             options=[
                                 ft.dropdown.Option(0), ft.dropdown.Option(1), ft.dropdown.Option(2),
                                 ft.dropdown.Option(3), ft.dropdown.Option(4), ft.dropdown.Option(5),
@@ -195,14 +273,21 @@ class DlgWindow:
         dlgWindow.open = True
         page.update()
 
-        def editTable(v, cell, nmbOfGroups, xFinal):
+        def editTable(v, cell, nmbOfGroups, koTable, xFinal):
             e.control.cells[cell].content.value = v.data
             if cell == 3:
-                DlgWindow.editDatabase(e, groupName, rankTable, nmbOfGroups, xFinal)
+                DlgWindow.editDatabase(e, groupName, rankTable, koTable, nmbOfGroups, xFinal)
                 dlgWindow.open = False
             page.update()
 
 class GUItable:
+    ''' TODO
+    - how many KO tables do I need?
+    - fill all KO tables
+    - update all KO tables with every result change in the group stage
+    - update the right database table with the result input AND update*
+    - *update all KO tables with every result change in the KO stage
+    '''
     def guiTables(dynamicRankTable, dynamicGroupstageTable, koTable):
         sortRankTableGUI = {}
         sortGroupStageTableGUI = {}
@@ -260,26 +345,24 @@ class GUItable:
             sortRankTableGUI[len(sortRankTableGUI)] = ft.DataTable(width=420)
             sortGroupStageTableGUI[len(sortGroupStageTableGUI)] = ft.DataTable(width=420)
             sortKOtableGUI[len(sortKOtableGUI)] = ft.DataTable(width=420)
+        #Final Table
+        sortKOtableGUI[12] = ft.DataTable(width=420)
+        sortKOtableGUI[13] = ft.DataTable(width=210)
+        sortKOtableGUI[14] = koTable[10]
 
         return sortRankTableGUI, sortGroupStageTableGUI, sortKOtableGUI
 
 def mainPage(page):
     
-    nmbOfGroups = 6 #TODO user setting
+    nmbOfGroups = 2 #TODO user setting
     teamsPerGroup = 4
-    
-    # Creating Group Tables
-    dynamicRankTable, dynamicGroupstageTable = GroupstageTable.groupTableMain(nmbOfGroups, teamsPerGroup, page)
+    koTable = {}
     
     # Creating ko Table
-    koTable = {}
-    for num in range(int(nmbOfGroups/2)):
-        koTable[num] = KOstage.createKOtable()
-        KOstage.updateKOtable(koTable[num], nmbOfGroups, "eight_finals", page)
-    if int(nmbOfGroups/2) < 4:
-        for num in range(4 - int(nmbOfGroups/2)):
-            koTable[len(koTable)] = ft.DataTable(width=420)
+    koTable = KOstage.individualTable(nmbOfGroups, page)
 
+    # Creating Group Tables
+    dynamicRankTable, dynamicGroupstageTable = GroupstageTable.groupTableMain(nmbOfGroups, teamsPerGroup, koTable,  page)
     sortRankTableGUI, sortGroupStageTableGUI, sortKOtableGUI = GUItable.guiTables(dynamicRankTable, dynamicGroupstageTable, koTable)
 
     # put it in the GUI
@@ -316,10 +399,16 @@ def mainPage(page):
                 sortGroupStageTableGUI[4], sortGroupStageTableGUI[5], sortGroupStageTableGUI[6], sortGroupStageTableGUI[7],
             ]),
             ft.Row([
-                sortKOtableGUI[0], sortKOtableGUI[1], sortKOtableGUI[2], sortKOtableGUI[3],     
+                sortKOtableGUI[0], sortKOtableGUI[1], sortKOtableGUI[2], sortKOtableGUI[3],   #eight Final
             ]),
             ft.Row([
-                sortKOtableGUI[4], sortKOtableGUI[5], sortKOtableGUI[6], sortKOtableGUI[7],    
+                sortKOtableGUI[4], sortKOtableGUI[5], sortKOtableGUI[6], sortKOtableGUI[7],    #eightFinal
+            ]),
+            ft.Row([
+                # sortKOtableGUI[8], sortKOtableGUI[9], sortKOtableGUI[10], sortKOtableGUI[11],    # freeTables for puffer
+            ]),
+            ft.Row([
+                sortKOtableGUI[12], sortKOtableGUI[13], sortKOtableGUI[14],  #Final
             ]),
             ft.Row([
                 credits
@@ -342,4 +431,4 @@ if __name__ == "__main__":
     page = ft.Page
     mainPage(page)
     
-    #TODO Achtelfinale einfügen
+    #TODO add finals
