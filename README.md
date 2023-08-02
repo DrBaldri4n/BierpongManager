@@ -1,3 +1,3 @@
 # still in process
 
-# add finale tables
+# add eight- and quaterfinal table
